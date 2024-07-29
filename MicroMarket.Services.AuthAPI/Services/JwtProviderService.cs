@@ -3,15 +3,19 @@ using MicroMarket.Services.AuthAPI.Models;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text;
 
 namespace MicroMarket.Services.AuthAPI.Services
 {
     public class JwtProviderService : IJwtProviderService
     {
         private readonly TokenValidationParameters _tokenValidationParameters;
+        private readonly byte[] key;
 
-        public JwtProviderService(TokenValidationParameters tokenValidationParameters)
+        public JwtProviderService(TokenValidationParameters tokenValidationParameters, IConfiguration configuration)
         {
+            var jwtOptionsSection = configuration.GetSection("ApiSettings:JwtOptions");
+            key = Encoding.ASCII.GetBytes(jwtOptionsSection["Key"]);
             _tokenValidationParameters = tokenValidationParameters;
         }
 
@@ -26,13 +30,12 @@ namespace MicroMarket.Services.AuthAPI.Services
             };
 
             claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
-
             return new JwtSecurityToken(
                 issuer: _tokenValidationParameters.ValidIssuer,
                 audience: _tokenValidationParameters.ValidAudience,
                 claims: claims,
                 expires: DateTime.UtcNow.Add(TimeSpan.FromDays(7)),
-                signingCredentials: new SigningCredentials(_tokenValidationParameters.IssuerSigningKey, SecurityAlgorithms.HmacSha256)
+                signingCredentials: new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)
             );
         }
 

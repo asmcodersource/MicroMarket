@@ -1,0 +1,29 @@
+version: '3.4'
+
+services:
+  micromarket.services.authapi:
+    image: micromarketservicesauthapi
+    build:
+      context: .
+      dockerfile: MicroMarket.Services.AuthAPI/Dockerfile
+    environment:
+      - ConnectionString=Host=${AUTH_POSTGRES_HOST};Port=${AUTH_POSTGRES_PORT};Database=${AUTH_POSTGRES_DB};Username=${AUTH_POSTGRES_USER};Password=${AUTH_POSTGRES_PASSWORD}
+    depends_on:
+      - postgres
+    networks:
+      - internal
+    ports:
+      - "8080:80"
+
+  postgres:
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=${AUTH_POSTGRES_DB}
+      - POSTGRES_USER=${AUTH_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${AUTH_POSTGRES_PASSWORD}
+    networks:
+      - internal
+
+networks:
+  internal:
+    driver: bridge

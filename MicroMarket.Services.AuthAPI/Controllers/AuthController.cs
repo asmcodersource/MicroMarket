@@ -5,12 +5,13 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.ComponentModel.DataAnnotations;
 using MicroMarket.Services.AuthAPI.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MicroMarket.Services.AuthAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AuthController: Controller
+    public class AuthController: ControllerBase
     {
         private readonly IAuthService _authService;
         private readonly IJwtProviderService _jwtProviderService;
@@ -21,7 +22,7 @@ namespace MicroMarket.Services.AuthAPI.Controllers
             _jwtProviderService = jwtProviderService;
         }
 
-        [HttpPost("register")]
+        [AllowAnonymous, HttpPost("register")]
         [ProducesResponseType(typeof(RegisterResponseDto), 200)]
         [ProducesResponseType(typeof(RegisterResponseDto), 400)]
         public async Task<IActionResult> Register(RegisterRequestDto registerRequest)
@@ -41,11 +42,11 @@ namespace MicroMarket.Services.AuthAPI.Controllers
 
             var (createdUser, createdUserRoles) = registerResult.Value;
             var encodedJwt = _jwtProviderService.EncodeToken(_jwtProviderService.CreateJwtToken(createdUser,createdUserRoles));
-            var response = new RegisterResponseDto(createdUser.Id, encodedJwt);
+            var response = new RegisterResponseDto(createdUser.Id, encodedJwt, createdUserRoles);
             return Ok(response);
         }
 
-        [HttpPost("login")]
+        [AllowAnonymous, HttpPost("login")]
         [ProducesResponseType(typeof(LoginResponseDto), 200)]
         [ProducesResponseType(typeof(LoginResponseDto), 400)]
         public async Task<IActionResult> Login(LoginRequestDto loginRequestDto)
@@ -59,8 +60,8 @@ namespace MicroMarket.Services.AuthAPI.Controllers
 
             var (loggedInUser, loggedInRoles) = loginResult.Value;
             var encodedJwt = _jwtProviderService.EncodeToken(_jwtProviderService.CreateJwtToken(loggedInUser, loggedInRoles));
-            var response = new LoginResponseDto(loggedInUser.Id, encodedJwt);
-            return Ok(Json(response));
+            var response = new LoginResponseDto(loggedInUser.Id, encodedJwt, loggedInRoles);
+            return Ok(response);
         }
     }
 }

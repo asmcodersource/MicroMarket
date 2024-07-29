@@ -1,4 +1,5 @@
 ﻿using MicroMarket.Services.AuthAPI.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -12,7 +13,7 @@ namespace MicroMarket.Services.AuthAPI.Utilities
         public static void AddConfiguredIdentityCore<ConreteDbContext>(this IServiceCollection services)
             where ConreteDbContext : DbContext
         {
-            services.AddIdentity<ApplicationUser, ApplicationUserRole>(options =>
+            services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
                 options.Password.RequireDigit = true;
                 options.Password.RequireLowercase = true;
@@ -22,6 +23,29 @@ namespace MicroMarket.Services.AuthAPI.Utilities
             })
                 .AddEntityFrameworkStores<ConreteDbContext>()
                 .AddDefaultTokenProviders();
+        }
+
+        public static void AddConfiguratedAuthentication(this IServiceCollection services, IConfiguration configuration)
+        {
+            var tokenValidationParameters = GetTokenValidationParameters(configuration);
+            services.AddAuthentication(cfg =>
+            {
+                cfg.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                cfg.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidIssuer = tokenValidationParameters.ValidIssuer,
+                        ValidateAudience = true,
+                        ValidAudience = tokenValidationParameters.ValidAudience,
+                        ValidateLifetime = true,
+                        IssuerSigningKey = tokenValidationParameters.IssuerSigningKey,
+                        ValidateIssuerSigningKey = true
+                    };
+                });
         }
 
         public static TokenValidationParameters GetTokenValidationParameters(IConfiguration configuration)

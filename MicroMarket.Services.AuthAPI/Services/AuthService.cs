@@ -5,20 +5,19 @@ using MicroMarket.Services.AuthAPI.Interfaces;
 using MicroMarket.Services.AuthAPI.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace MicroMarket.Services.AuthAPI.Services
 {
     public class AuthService : IAuthService
     {
         private readonly UserManager<ApplicationUser> _usersManager;
-        private readonly RoleManager<ApplicationUserRole> _rolesManager;
         private readonly AuthDbContext _authDbContext;
 
-        public AuthService(AuthDbContext dbContext, UserManager<ApplicationUser> usersManager, RoleManager<ApplicationUserRole> rolesManager)
+        public AuthService(AuthDbContext dbContext, UserManager<ApplicationUser> usersManager)
         {
             _authDbContext = dbContext;
             _usersManager = usersManager;
-            _rolesManager = rolesManager;
         }
 
         public async Task<Result<(ApplicationUser, IList<string>)>> Login(string email, string password)
@@ -55,6 +54,7 @@ namespace MicroMarket.Services.AuthAPI.Services
                     Name = name,
                     Surname = surname,
                     MiddleName = middleName,
+                    UserName = name,
                     Email = email,
                 };
                 var creatingResult = await _usersManager.CreateAsync(creatingUser, password);
@@ -69,16 +69,6 @@ namespace MicroMarket.Services.AuthAPI.Services
             {
                 return Result.Failure<(ApplicationUser, IList<string>)>($"An error occurred: {ex.Message}");
             }
-        }
-
-        public Task<Result> AssignRole(ApplicationUserRoles user)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<Result> UnassignRole(ApplicationUserRoles user)
-        {
-            throw new NotImplementedException();
         }
     }
 }

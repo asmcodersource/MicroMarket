@@ -2,14 +2,16 @@
 {
     public class RegisterResponseDto
     {
-        public readonly string? UserId;
-        public readonly string? JwtToken;
-        public readonly object? Error;
+        public string? UserId { get; }
+        public string? JwtToken { get; }
+        public object? Error { get; }
+        public IList<string>? Roles { get; }
 
-        public RegisterResponseDto(string userId, string jwtToken)
+        public RegisterResponseDto(string userId, string jwtToken, IList<string> roles)
         {
             UserId = userId;
             JwtToken = jwtToken;
+            Roles = roles;
         }
 
         public RegisterResponseDto(object error)
