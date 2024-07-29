@@ -8,6 +8,7 @@ services:
       dockerfile: MicroMarket.Services.AuthAPI/Dockerfile
     environment:
       - ConnectionString=Host=${AUTH_POSTGRES_HOST};Port=${AUTH_POSTGRES_PORT};Database=${AUTH_POSTGRES_DB};Username=${AUTH_POSTGRES_USER};Password=${AUTH_POSTGRES_PASSWORD}
+      - RedisConnectionString={REDIS_HOST_NAME}
     depends_on:
       - postgres
     networks:
@@ -21,6 +22,13 @@ services:
       - POSTGRES_DB=${AUTH_POSTGRES_DB}
       - POSTGRES_USER=${AUTH_POSTGRES_USER}
       - POSTGRES_PASSWORD=${AUTH_POSTGRES_PASSWORD}
+    networks:
+      - internal
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    restart: unless-stopped
     networks:
       - internal
 

@@ -25,4 +25,8 @@
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\MicroMarker.Services.SharedCore\MicroMarker.Services.SharedCore.csproj" />
+  </ItemGroup>
+
 </Project>

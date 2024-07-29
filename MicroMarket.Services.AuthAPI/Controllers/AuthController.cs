@@ -14,9 +14,9 @@ namespace MicroMarket.Services.AuthAPI.Controllers
     public class AuthController: ControllerBase
     {
         private readonly IAuthService _authService;
-        private readonly IJwtProviderService _jwtProviderService;
+        private readonly IJwtService _jwtProviderService;
 
-        public AuthController(IAuthService authService, IJwtProviderService jwtProviderService)
+        public AuthController(IAuthService authService, IJwtService jwtProviderService)
         {
             _authService = authService;
             _jwtProviderService = jwtProviderService;
@@ -41,7 +41,11 @@ namespace MicroMarket.Services.AuthAPI.Controllers
                 return BadRequest(new RegisterResponseDto(registerResult.Error));
 
             var (createdUser, createdUserRoles) = registerResult.Value;
-            var encodedJwt = _jwtProviderService.EncodeToken(_jwtProviderService.CreateJwtToken(createdUser,createdUserRoles));
+            var jwtTokenCreateResult = await _jwtProviderService.CreateUserJwtToken(createdUser);
+            if (jwtTokenCreateResult.IsFailure)
+                return StatusCode(StatusCodes.Status500InternalServerError, jwtTokenCreateResult.Error);
+
+            var encodedJwt = _jwtProviderService.EncodeToken(jwtTokenCreateResult.Value);
             var response = new RegisterResponseDto(createdUser.Id, encodedJwt, createdUserRoles);
             return Ok(response);
         }
@@ -59,7 +63,11 @@ namespace MicroMarket.Services.AuthAPI.Controllers
                 return BadRequest(new LoginResponseDto(loginResult.Error));
 
             var (loggedInUser, loggedInRoles) = loginResult.Value;
-            var encodedJwt = _jwtProviderService.EncodeToken(_jwtProviderService.CreateJwtToken(loggedInUser, loggedInRoles));
+            var jwtTokenCreateResult = await _jwtProviderService.CreateUserJwtToken(loggedInUser);
+            if( jwtTokenCreateResult.IsFailure )
+                return StatusCode(StatusCodes.Status500InternalServerError, jwtTokenCreateResult.Error);
+
+            var encodedJwt = _jwtProviderService.EncodeToken(jwtTokenCreateResult.Value);
             var response = new LoginResponseDto(loggedInUser.Id, encodedJwt, loggedInRoles);
             return Ok(response);
         }
