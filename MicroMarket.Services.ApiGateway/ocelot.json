@@ -1,0 +1,57 @@
+{
+  "Routes": [
+    {
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "DownstreamPathTemplate": "/api/identity/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "micromarket.services.identity",
+          "Port": 8081
+        }
+      ],
+      "UpstreamPathTemplate": "/api/identity/{everything}",
+      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ],
+      "SwaggerKey": "Identity"
+    },
+    {
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "DownstreamPathTemplate": "/api/catalog/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "micromarket.services.catalog",
+          "Port": 8081
+        }
+      ],
+      "UpstreamPathTemplate": "/api/catalog/{everything}",
+      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ],
+      "SwaggerKey": "Catalog"
+    }
+  ],
+  "SwaggerEndPoints": [
+    {
+      "Key": "Identity",
+      "Config": [
+        {
+          "Name": "Identity API",
+          "Version": "v1",
+          "Url": "https://micromarket.services.identity:8081/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "Catalog",
+      "Config": [
+        {
+          "Name": "Catalog API",
+          "Version": "v1",
+          "Url": "https://micromarket.services.catalog:8081/swagger/v1/swagger.json"
+        }
+      ]
+    }
+  ],
+  "GlobalConfiguration": {
+    "BaseUrl": "https://localhost:8081"
+  }
+}

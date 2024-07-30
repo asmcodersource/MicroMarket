@@ -1,10 +1,10 @@
 ﻿using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
-using MicroMarker.Services.SharedCore.TokenValidation.Middlewares;
-using MicroMarker.Services.SharedCore.TokenValidation.Services;
+using MicroMarket.Services.SharedCore.TokenValidation.Middlewares;
+using MicroMarket.Services.SharedCore.TokenValidation.Services;
 
-namespace MicroMarker.Services.SharedCore.TokenValidation.Extensions
+namespace MicroMarket.Services.SharedCore.TokenValidation.Extensions
 {
     public static class Extensions
     {

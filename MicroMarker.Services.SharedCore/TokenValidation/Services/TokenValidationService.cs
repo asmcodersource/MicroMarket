@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MicroMarker.Services.SharedCore.TokenValidation.Services
+namespace MicroMarket.Services.SharedCore.TokenValidation.Services
 {
     public class TokenValidationService
     {

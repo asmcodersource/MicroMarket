@@ -3,13 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.10.35013.160
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MicroMarket.Services.AuthAPI", "MicroMarket.Services.AuthAPI\MicroMarket.Services.AuthAPI.csproj", "{2EC90463-0992-498C-85E5-3BCD36E14041}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Элементы решения", "Элементы решения", "{A5EC54C7-6D62-4245-951F-2740BA0934D0}"
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{A71D7C45-3291-4522-BB9D-C2061F71CA37}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroMarker.Services.SharedCore", "MicroMarker.Services.SharedCore\MicroMarker.Services.SharedCore.csproj", "{8C86E460-663F-49F0-9BC1-6F7F3D7EB3E1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MicroMarket.Services.SharedCore", "MicroMarker.Services.SharedCore\MicroMarket.Services.SharedCore.csproj", "{8C86E460-663F-49F0-9BC1-6F7F3D7EB3E1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MicroMarket.Services.Identity", "MicroMarket.Services.Identity\MicroMarket.Services.Identity.csproj", "{CD62E5F3-335E-4A74-AA54-93275EB22010}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroMarket.Services.Catalog", "MicroMarket.Services.Catalog\MicroMarket.Services.Catalog.csproj", "{ADFE4FE7-5AE3-43B1-A770-8D2509C71BF2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroMarket.Services.ApiGateway", "MicroMarket.Services.ApiGateway\MicroMarket.Services.ApiGateway.csproj", "{CBA3F0F5-0BE7-458A-88C6-86BE1FA543A6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +21,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{2EC90463-0992-498C-85E5-3BCD36E14041}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2EC90463-0992-498C-85E5-3BCD36E14041}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2EC90463-0992-498C-85E5-3BCD36E14041}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2EC90463-0992-498C-85E5-3BCD36E14041}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A71D7C45-3291-4522-BB9D-C2061F71CA37}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A71D7C45-3291-4522-BB9D-C2061F71CA37}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A71D7C45-3291-4522-BB9D-C2061F71CA37}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -29,6 +29,18 @@ Global
 		{8C86E460-663F-49F0-9BC1-6F7F3D7EB3E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8C86E460-663F-49F0-9BC1-6F7F3D7EB3E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8C86E460-663F-49F0-9BC1-6F7F3D7EB3E1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CD62E5F3-335E-4A74-AA54-93275EB22010}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CD62E5F3-335E-4A74-AA54-93275EB22010}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CD62E5F3-335E-4A74-AA54-93275EB22010}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CD62E5F3-335E-4A74-AA54-93275EB22010}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ADFE4FE7-5AE3-43B1-A770-8D2509C71BF2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ADFE4FE7-5AE3-43B1-A770-8D2509C71BF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ADFE4FE7-5AE3-43B1-A770-8D2509C71BF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ADFE4FE7-5AE3-43B1-A770-8D2509C71BF2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CBA3F0F5-0BE7-458A-88C6-86BE1FA543A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CBA3F0F5-0BE7-458A-88C6-86BE1FA543A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CBA3F0F5-0BE7-458A-88C6-86BE1FA543A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CBA3F0F5-0BE7-458A-88C6-86BE1FA543A6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

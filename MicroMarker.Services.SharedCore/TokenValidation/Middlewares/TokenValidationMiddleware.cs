@@ -1,4 +1,4 @@
-﻿using MicroMarker.Services.SharedCore.TokenValidation.Services;
+﻿using MicroMarket.Services.SharedCore.TokenValidation.Services;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MicroMarker.Services.SharedCore.TokenValidation.Middlewares
+namespace MicroMarket.Services.SharedCore.TokenValidation.Middlewares
 {
     public class TokenValidationMiddleware
     {

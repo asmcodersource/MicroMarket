@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 
 
-namespace MicroMarker.Services.SharedCore.SharedRedis.Extensions
+namespace MicroMarket.Services.SharedCore.SharedRedis.Extensions
 {
     public static class SharedRedisExtensions
     {

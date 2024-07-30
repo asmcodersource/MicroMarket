@@ -4,7 +4,9 @@
       "commandName": "DockerCompose",
       "commandVersion": "1.0",
       "serviceActions": {
-        "micromarket.services.authapi": "StartDebugging"
+        "micromarket.services.identity": "StartDebugging",
+        "micromarket.services.catalog": "StartDebugging",
+        "micromarket.services.apigateway": "StartDebugging"
       }
     }
   }
