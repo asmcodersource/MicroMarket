@@ -16,7 +16,7 @@ namespace MicroMarket.Services.Identity.Controllers
             _rolesService = rolesService;
         }
 
-        [Authorize(Roles = "Admin"), HttpPost]
+        [Authorize(Roles = "ADMIN"), HttpPost]
         [ProducesResponseType(200)]
         [ProducesResponseType(typeof(IList<string>), 400)]
         public async Task<IActionResult> AddRole([FromBody] RoleRequestDto role)
@@ -30,7 +30,7 @@ namespace MicroMarket.Services.Identity.Controllers
                 return BadRequest(result.Error);
         }
 
-        [Authorize(Roles = "Admin"), HttpDelete]
+        [Authorize(Roles = "ADMIN"), HttpDelete]
         [ProducesResponseType(200)]
         [ProducesResponseType(typeof(IList<string>), 400)]
         public async Task<IActionResult> RemoveRole([FromBody] RoleRequestDto role)
@@ -44,7 +44,7 @@ namespace MicroMarket.Services.Identity.Controllers
                 return BadRequest(result.Error);
         }
 
-        [Authorize(Roles = "Admin"), HttpGet]
+        [Authorize(Roles = "ADMIN"), HttpGet]
         [ProducesResponseType(typeof(IList<string>), 200)]
         [ProducesResponseType(typeof(IList<string>), 400)]
         public async Task<IActionResult> GetExistRoles()
@@ -56,7 +56,7 @@ namespace MicroMarket.Services.Identity.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError);
         }
 
-        [Authorize(Roles = "Admin"), HttpGet("{role}/users")]
+        [Authorize(Roles = "ADMIN"), HttpGet("{role}/users")]
         [ProducesResponseType(typeof(List<UserResponseDto>), 200)]
         [ProducesResponseType(typeof(IList<string>), 400)]
         public async Task<IActionResult> GetRoleUsers(string role)

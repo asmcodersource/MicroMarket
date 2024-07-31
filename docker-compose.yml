@@ -6,8 +6,12 @@ services:
     build:
       context: .
       dockerfile: MicroMarket.Services.ApiGateway/Dockerfile
+    environment:
+      - RedisConnectionString=${REDIS_HOST_NAME}
     ports:
       - "8081:8081"
+    depends_on:
+      - shared.redis
     networks:
       - internal
 
@@ -25,7 +29,7 @@ services:
       dockerfile: MicroMarket.Services.Identity/Dockerfile
     environment:
       - ConnectionString=Host=${IDENTITY_POSTGRES_HOST};Port=${IDENTITY_POSTGRES_PORT};Database=${IDENTITY_POSTGRES_DB};Username=${IDENTITY_POSTGRES_USER};Password=${IDENTITY_POSTGRES_PASSWORD}
-      - RedisConnectionString={REDIS_HOST_NAME}
+      - RedisConnectionString=${REDIS_HOST_NAME}
     depends_on:
       - micromarket.services.identity.postgres
       - shared.redis
@@ -48,7 +52,6 @@ services:
       dockerfile: MicroMarket.Services.Catalog/Dockerfile
     environment:
       - ConnectionString=Host=${CATALOG_POSTGRES_HOST};Port=${CATALOG_POSTGRES_PORT};Database=${CATALOG_POSTGRES_DB};Username=${CATALOG_POSTGRES_USER};Password=${CATALOG_POSTGRES_PASSWORD}
-      - RedisConnectionString={REDIS_HOST_NAME}
     depends_on:
       - shared.redis
       - micromarket.services.catalog.postgres

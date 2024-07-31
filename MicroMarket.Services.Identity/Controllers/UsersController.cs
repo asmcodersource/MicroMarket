@@ -24,7 +24,7 @@ namespace MicroMarket.Services.Identity.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState.Select(e => new string($"{e.Key} has error {e.Value}")).ToList());
-            var userRoles = await _rolesService.AssignRoles(userId, new[] { "Admin" });
+            var userRoles = await _rolesService.AssignRoles(userId, new[] { "ADMIN" });
             if (userRoles.IsSuccess)
                 return Ok(userRoles.Value);
             else
@@ -44,7 +44,7 @@ namespace MicroMarket.Services.Identity.Controllers
                 return BadRequest(roles.Error);
         }
 
-        [Authorize(Roles = "Admin"), HttpGet("{userId}/roles")]
+        [Authorize(Roles = "ADMIN"), HttpGet("{userId}/roles")]
         [ProducesResponseType(typeof(IList<string>), 200)]
         [ProducesResponseType(typeof(IList<string>), 400)]
         public async Task<IActionResult> GetRoles(string userId)
@@ -58,7 +58,7 @@ namespace MicroMarket.Services.Identity.Controllers
                 return BadRequest(roles.Error);
         }
 
-        [Authorize(Roles = "Admin"), HttpPut("{userId}/roles")]
+        [Authorize(Roles = "ADMIN"), HttpPut("{userId}/roles")]
         [ProducesResponseType(typeof(IList<string>), 200)]
         [ProducesResponseType(typeof(IList<string>), 400)]
         public async Task<IActionResult> AssignRoles(string userId, [FromBody] IList<RoleRequestDto> roles)
@@ -72,7 +72,7 @@ namespace MicroMarket.Services.Identity.Controllers
                 return BadRequest(userRoles.Error);
         }
 
-        [Authorize(Roles = "Admin"), HttpDelete("{userId}/roles")]
+        [Authorize(Roles = "ADMIN"), HttpDelete("{userId}/roles")]
         [ProducesResponseType(typeof(IList<string>), 200)]
         [ProducesResponseType(typeof(IList<string>), 400)]
         public async Task<IActionResult> UnassignRoles(string userId, [FromBody] IList<RoleRequestDto> roles)
