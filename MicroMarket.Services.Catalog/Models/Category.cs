@@ -1,15 +1,31 @@
-﻿namespace MicroMarket.Services.Catalog.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+
+namespace MicroMarket.Services.Catalog.Models
 {
     public class Category
     {
+        [Key]
         public Guid Id { get; set; }
+
+        [Required]
+        [MaxLength(100)]
         public string Name { get; set; } = string.Empty;
+
+        [MaxLength(500)]
         public string Description { get; set; } = string.Empty;
-        public string ImageUrl { get; set; } = string.Empty;
+
         public Guid? ParentCategoryId { get; set; }
+
+        [ForeignKey("ParentCategoryId")]
         public Category? ParentCategory { get; set; } = null;
+
         public ICollection<Category> ChildCategories { get; set; } = new List<Category>();
+
         public ICollection<Product> Products { get; set; } = new List<Product>();
+
         public bool IsActive { get; set; } = false;
+
+        public bool IsDeleted { get; set; } = false;
     }
 }
