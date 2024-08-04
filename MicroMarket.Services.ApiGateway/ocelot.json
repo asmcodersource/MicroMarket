@@ -27,6 +27,20 @@
       "UpstreamPathTemplate": "/api/catalog/{everything}",
       "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ],
       "SwaggerKey": "Catalog"
+    },
+    {
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "DownstreamPathTemplate": "/api/basket/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "micromarket.services.basket",
+          "Port": 8081
+        }
+      ],
+      "UpstreamPathTemplate": "/api/basket/{everything}",
+      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ],
+      "SwaggerKey": "Basket"
     }
   ],
   "SwaggerEndPoints": [
@@ -47,6 +61,16 @@
           "Name": "Catalog API",
           "Version": "v1",
           "Url": "https://micromarket.services.catalog:8081/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "Basket",
+      "Config": [
+        {
+          "Name": "Basket API",
+          "Version": "v1",
+          "Url": "https://micromarket.services.basket:8081/swagger/v1/swagger.json"
         }
       ]
     }

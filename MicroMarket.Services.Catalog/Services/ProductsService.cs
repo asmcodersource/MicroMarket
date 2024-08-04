@@ -74,6 +74,7 @@ namespace MicroMarket.Services.Catalog.Services
             }
             catch(Exception ex)
             {
+                await transaction.RollbackAsync();
                 return Result.Failure<Product>($"Some error happend during DiffUpdateQuantity method execution, error={ex.Message}");
             }
         }
@@ -114,6 +115,7 @@ namespace MicroMarket.Services.Catalog.Services
             }
             catch (Exception ex)
             {
+                await transaction.RollbackAsync();
                 return Result.Failure<Product>($"Some error happend during DiffUpdateQuantity method execution, error={ex.Message}");
             }
         }
@@ -135,6 +137,7 @@ namespace MicroMarket.Services.Catalog.Services
             }
             catch (Exception ex)
             {
+                await transaction.RollbackAsync();
                 return Result.Failure<Product>($"Some error happend during DiffUpdateQuantity method execution, error={ex.Message}");
             }
         }

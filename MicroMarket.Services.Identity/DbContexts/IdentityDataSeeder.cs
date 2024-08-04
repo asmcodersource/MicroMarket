@@ -31,6 +31,8 @@ namespace MicroMarket.Services.Identity.DbContexts
             adminUser.Email = "admin@mail.com";
             await userManager.CreateAsync(adminUser, "Qwerty@123123");
             await userManager.AddToRoleAsync(adminUser, "Admin");
+            await userManager.AddToRoleAsync(adminUser, "Customer");
+            await userManager.AddToRoleAsync(adminUser, "Manager");
             // Creating debug admin user
             var customerUser = new ApplicationUser();
             customerUser.UserName = "Customer";

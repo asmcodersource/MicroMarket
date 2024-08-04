@@ -1,0 +1,90 @@
+﻿using MicroMarket.Services.Basket.Dtos;
+using MicroMarket.Services.Basket.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+
+namespace MicroMarket.Services.Basket.Controllers
+{
+    [ApiController]
+    [Route("/api/[controller]")]
+    public class BasketController: ControllerBase
+    {
+        private readonly IBasketService _basketService;
+
+        public BasketController(IBasketService basketService)
+        {
+            _basketService = basketService;
+        }
+
+        [HttpGet("{userId}/items")]
+        [Authorize(Roles = "ADMIN,CUSTOMER")]
+        public async Task<IActionResult> GetItems(Guid userId)
+        {
+            var itemsGetResult = await _basketService.GetItems(userId);
+            if (itemsGetResult.IsFailure)
+                return BadRequest(itemsGetResult.Error);
+            return Ok(itemsGetResult.Value);
+        }
+
+        [HttpGet("my/items")]
+        [Authorize(Roles = "CUSTOMER")]
+        public async Task<IActionResult> GetMyItems()
+        {
+            var userId = Guid.Parse(User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value);
+            var itemsGetResult = await _basketService.GetItems(userId);
+            if (itemsGetResult.IsFailure)
+                return BadRequest(itemsGetResult.Error);
+            return Ok(itemsGetResult.Value);
+        }
+
+        [HttpPost("my/items/add-product/{productId}")]
+        [Authorize(Roles = "CUSTOMER")]
+        public async Task<IActionResult> AddMyItem(Guid productId, [FromBody] BasketUpdateQuantityRequestDto newQuantityDto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState.ToList());
+            var userId = Guid.Parse(User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value);
+            var itemsAddResult = await _basketService.AddItem(userId, productId, newQuantityDto.NewQuantity);
+            if (itemsAddResult.IsFailure)
+                return BadRequest(itemsAddResult.Error);
+            return Ok(itemsAddResult.Value);
+        }
+
+        [HttpPost("{userId}/items/add-product/{productId}")]
+        [Authorize(Roles = "ADMIN,MANAGER")]
+        public async Task<IActionResult> AddItem(Guid userId, Guid productId, [FromBody] BasketUpdateQuantityRequestDto newQuantityDto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState.ToList());
+            var itemsAddResult = await _basketService.AddItem(userId, productId, newQuantityDto.NewQuantity);
+            if (itemsAddResult.IsFailure)
+                return BadRequest(itemsAddResult.Error);
+            return Ok(itemsAddResult.Value);
+        }
+
+        [HttpPut("{itemId}/update-quantity")]
+        [Authorize(Roles = "CUSTOMER")]
+        public async Task<IActionResult> UpdateQuantity(Guid itemId, [FromBody] BasketUpdateQuantityRequestDto newQuantityDto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState.ToList());
+            var itemsQuanitytUpdateResult = await _basketService.UpdateQuantity(itemId, newQuantityDto.NewQuantity);
+            if (itemsQuanitytUpdateResult.IsFailure)
+                return BadRequest(itemsQuanitytUpdateResult.Error);
+            return Ok(itemsQuanitytUpdateResult.Value);
+        }
+
+        [HttpDelete("{itemId}")]
+        [Authorize(Roles = "CUSTOMER")]
+        public async Task<IActionResult> RemoveItem(Guid itemId)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState.ToList());
+            var itemsRemoveResult = await _basketService.RemoveItem(itemId);
+            if (itemsRemoveResult.IsFailure)
+                return BadRequest(itemsRemoveResult.Error);
+            return Ok();
+        }
+    }
+}

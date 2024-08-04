@@ -1,6 +1,14 @@
 version: '3.4'
 
 services:
+  micromarket.services.rabbitmq:
+    image: rabbitmq:management-alpine
+    ports:
+      - "15672:15672"
+    networks:
+      - internal
+    
+
   micromarket.services.apigateway:
     image: micromarket.services.apigateway
     build:
@@ -67,8 +75,31 @@ services:
     networks:
       - internal
 
+  micromarket.services.basket:
+    image: micromarket.services.basket
+    build:
+      context: .
+      dockerfile: MicroMarket.Services.Basket/Dockerfile
+    environment:
+      - ConnectionString=Host=${BASKET_POSTGRES_HOST};Port=${BASKET_POSTGRES_PORT};Database=${BASKET_POSTGRES_DB};Username=${BASKET_POSTGRES_USER};Password=${BASKET_POSTGRES_PASSWORD}
+    depends_on:
+      - shared.redis
+      - micromarket.services.basket.postgres
+    networks:
+      - internal
+
+  micromarket.services.basket.postgres:
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=${BASKET_POSTGRES_DB}
+      - POSTGRES_USER=${BASKET_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${BASKET_POSTGRES_PASSWORD}
+    networks:
+      - internal
+
 networks:
   internal:
     driver: bridge
+
 
 
