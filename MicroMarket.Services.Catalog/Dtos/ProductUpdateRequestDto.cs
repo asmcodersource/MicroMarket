@@ -23,10 +23,6 @@ namespace MicroMarket.Services.Catalog.Dtos
         [Range(0.01, 10000.00)]
         public decimal Price { get; set; }
 
-        [Required]
-        [Range(0, 10000)]
-        public int StockQuantity { get; set; }
-
         [Range(0.01, 100.00)]
         public decimal? Weight { get; set; }
 

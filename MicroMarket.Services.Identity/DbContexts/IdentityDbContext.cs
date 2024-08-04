@@ -4,12 +4,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MicroMarket.Services.Identity.DbContexts
 {
-    public class AuthDbContext : IdentityDbContext<ApplicationUser>
+    public class IdentityDbContext : IdentityDbContext<ApplicationUser>
     {
         private readonly IConfiguration _configuration;
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
 
-        public AuthDbContext(DbContextOptions<AuthDbContext> options, IConfiguration configuration)
+        public IdentityDbContext(DbContextOptions<IdentityDbContext> options, IConfiguration configuration)
             : base(options)
         {
             _configuration = configuration;
@@ -19,8 +19,10 @@ namespace MicroMarket.Services.Identity.DbContexts
         {
             if (_configuration["ConnectionString"] is not null)
                 optionsBuilder.UseNpgsql(_configuration["ConnectionString"]);
-            else
+            else if (EF.IsDesignTime)
                 optionsBuilder.UseNpgsql();
+            else
+                throw new InvalidOperationException();
         }
     }
 }

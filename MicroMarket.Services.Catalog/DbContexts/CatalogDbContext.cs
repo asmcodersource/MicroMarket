@@ -19,8 +19,10 @@ namespace MicroMarket.Services.Catalog.DbContexts
         {
             if (_configuration["ConnectionString"] is not null)
                 optionsBuilder.UseNpgsql(_configuration["ConnectionString"]);
-            else
+            else if (EF.IsDesignTime)
                 optionsBuilder.UseNpgsql();
+            else
+                throw new InvalidOperationException();
         }
     }
 }

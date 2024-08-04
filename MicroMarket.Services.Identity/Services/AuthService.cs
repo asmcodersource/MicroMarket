@@ -10,9 +10,9 @@ namespace MicroMarket.Services.Identity.Services
     public class AuthService : IAuthService
     {
         private readonly UserManager<ApplicationUser> _usersManager;
-        private readonly AuthDbContext _authDbContext;
+        private readonly IdentityDbContext _authDbContext;
 
-        public AuthService(AuthDbContext dbContext, UserManager<ApplicationUser> usersManager)
+        public AuthService(IdentityDbContext dbContext, UserManager<ApplicationUser> usersManager)
         {
             _authDbContext = dbContext;
             _usersManager = usersManager;

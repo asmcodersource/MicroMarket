@@ -11,9 +11,9 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace MicroMarket.Services.Identity.Migrations
 {
-    [DbContext(typeof(AuthDbContext))]
-    [Migration("20240728141804_initial")]
-    partial class initial
+    [DbContext(typeof(IdentityDbContext))]
+    [Migration("20240804142729_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

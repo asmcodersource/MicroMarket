@@ -10,7 +10,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace MicroMarket.Services.Identity.Migrations
 {
-    [DbContext(typeof(AuthDbContext))]
+    [DbContext(typeof(IdentityDbContext))]
     partial class AuthDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)

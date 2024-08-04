@@ -52,7 +52,6 @@ namespace MicroMarket.Services.Catalog.Services
                 DiscountStartDate = productCreateRequestDto.DiscountStartDate,
                 DiscountEndDate = productCreateRequestDto.DiscountEndDate,
             };
-            // TODO: verify this return object with Id
             await _dbContext.Products.AddAsync(createdProduct);
             await _dbContext.SaveChangesAsync();
             return Result.Success(createdProduct);
@@ -91,26 +90,32 @@ namespace MicroMarket.Services.Catalog.Services
 
         public async Task<Result<Product>> UpdateProduct(ProductUpdateRequestDto productUpdateRequestDto)
         {
-            var product = await _dbContext.Products.SingleOrDefaultAsync(p => p.Id == productUpdateRequestDto.Id && !p.IsDeleted);
-            if (product is null)
-                return Result.Failure<Product>($"Product {productUpdateRequestDto.Id} is not exists");
+            var transaction = await _dbContext.Database.BeginTransactionAsync();
+            try {
+                var product = await _dbContext.Products.SingleOrDefaultAsync(p => p.Id == productUpdateRequestDto.Id && !p.IsDeleted);
+                if (product is null)
+                    return Result.Failure<Product>($"Product {productUpdateRequestDto.Id} is not exists");
 
-            product.Name = productUpdateRequestDto.Name;
-            product.Description = productUpdateRequestDto.Description;
-            product.CategoryId = productUpdateRequestDto.CategoryId;
-            product.Price = productUpdateRequestDto.Price;
-            product.StockQuantity = productUpdateRequestDto.StockQuantity;
-            product.Weight = productUpdateRequestDto.Weight;
-            product.Dimensions = productUpdateRequestDto.Dimensions;
-            product.Brand = productUpdateRequestDto.Brand;
-            product.Manufacturer = productUpdateRequestDto.Manufacturer;
-            product.DiscountPrice = productUpdateRequestDto.DiscountPrice;
-            product.DiscountStartDate = productUpdateRequestDto.DiscountStartDate;
-            product.DiscountEndDate = productUpdateRequestDto.DiscountEndDate;
-            _dbContext.Products.Update(product);
-            await _dbContext.SaveChangesAsync();
-            // TODO: verify this return object with Id
-            return Result.Success(product);
+                product.Name = productUpdateRequestDto.Name;
+                product.Description = productUpdateRequestDto.Description;
+                product.CategoryId = productUpdateRequestDto.CategoryId;
+                product.Price = productUpdateRequestDto.Price;
+                product.Weight = productUpdateRequestDto.Weight;
+                product.Dimensions = productUpdateRequestDto.Dimensions;
+                product.Brand = productUpdateRequestDto.Brand;
+                product.Manufacturer = productUpdateRequestDto.Manufacturer;
+                product.DiscountPrice = productUpdateRequestDto.DiscountPrice;
+                product.DiscountStartDate = productUpdateRequestDto.DiscountStartDate;
+                product.DiscountEndDate = productUpdateRequestDto.DiscountEndDate;
+                _dbContext.Products.Update(product);
+                await _dbContext.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return Result.Success(product);
+            }
+            catch (Exception ex)
+            {
+                return Result.Failure<Product>($"Some error happend during DiffUpdateQuantity method execution, error={ex.Message}");
+            }
         }
 
         public async Task<Result<Product>> UpdateQuanity(Guid productId, int quantity)

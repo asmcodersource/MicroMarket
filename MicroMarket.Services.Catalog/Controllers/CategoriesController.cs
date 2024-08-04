@@ -26,7 +26,18 @@ namespace MicroMarket.Services.Catalog.Controllers
             var getRootCategoryResult = await _categoriesService.GetRootCategories();
             if (getRootCategoryResult.IsFailure)
                 return StatusCode(StatusCodes.Status500InternalServerError, getRootCategoryResult.Error);
-            var categoriesDto = getRootCategoryResult.Value.Select(c => new CategoryGetResponseDto(c));
+            var categoriesDto = getRootCategoryResult.Value.Select(c => new CategoryGetResponseDto(c)).ToList();
+            return Ok(categoriesDto);
+        }
+
+        [AllowAnonymous, HttpGet("{categoryId}/childs")]
+        [ProducesResponseType(typeof(ICollection<Category>), 200)]
+        public async Task<IActionResult> GetCategoryChilds(Guid categoryId)
+        {
+            var getRootCategoryResult = await _categoriesService.GetChildCategories(categoryId);
+            if (getRootCategoryResult.IsFailure)
+                return StatusCode(StatusCodes.Status400BadRequest, getRootCategoryResult.Error);
+            var categoriesDto = getRootCategoryResult.Value.Select(c => new CategoryGetResponseDto(c)).ToList();
             return Ok(categoriesDto);
         }
 
@@ -55,7 +66,10 @@ namespace MicroMarket.Services.Catalog.Controllers
             var (category, products) = getCategoryProductsResult.Value;
             var categoryDto = new CategoryGetResponseDto(category);
             var productsDto = products.Select(p => new ProductGetResponseDto(p));
-            return Ok((categoryDto, productsDto));
+            return Ok(new { 
+                category = categoryDto, 
+                products = productsDto 
+            });
         }
 
         [Authorize(Roles = "ADMIN,MANAGER"), HttpPost]

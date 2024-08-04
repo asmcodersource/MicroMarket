@@ -40,7 +40,7 @@ namespace MicroMarket.Services.Identity.Services
             var rolesResult = await _rolesService.GetRoles(user.Id);
             if (rolesResult.IsFailure)
                 return Result.Failure<JwtSecurityToken>($"Error getting user roles when creating JWT token: {rolesResult.Error}");
-            claims.AddRange(rolesResult.Value.Select(role => new Claim(ClaimTypes.Role, role)));
+            claims.AddRange(rolesResult.Value.Select(role => new Claim(ClaimTypes.Role, role.ToUpperInvariant())));
 
             return new JwtSecurityToken(
                 issuer: _tokenValidationParameters.ValidIssuer,

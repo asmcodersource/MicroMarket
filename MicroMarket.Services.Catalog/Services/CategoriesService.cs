@@ -4,6 +4,7 @@ using MicroMarket.Services.Catalog.Interfaces;
 using MicroMarket.Services.Catalog.Dtos;
 using MicroMarket.Services.Catalog.DbContexts;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 
 namespace MicroMarket.Services.Catalog.Services
 {
@@ -22,7 +23,6 @@ namespace MicroMarket.Services.Catalog.Services
         public async Task<Result> DeleteCategory(Guid categoryId)
         {
             var isCategoryPresented = await _dbContext.Categories
-                .Include(c => c.ChildCategories)
                 .Where(c => !c.IsDeleted)
                 .AnyAsync(c => c.Id == categoryId);
             if (!isCategoryPresented)
@@ -61,9 +61,21 @@ namespace MicroMarket.Services.Catalog.Services
         public async Task<Result<ICollection<Category>>> GetRootCategories()
         {
             var categories = await _dbContext.Categories
-                .Where(c => !c.IsDeleted && c.IsActive)
-                .Where(c => c.ParentCategoryId == null)
+                .Where(c => !c.IsDeleted && c.IsActive && c.ParentCategoryId == null)
                 .Include(c => c.Products)
+                .AsNoTracking()
+                .ToListAsync();
+            return Result.Success(categories as ICollection<Category>);
+        }
+
+        public async Task<Result<ICollection<Category>>> GetChildCategories(Guid categoryId)
+        {
+            var isCategoryPresented = await _dbContext.Categories.Where(c => c.Id == categoryId).AnyAsync();
+            if (!isCategoryPresented)
+                return Result.Failure<ICollection<Category>>($"Parent category {categoryId} is not exists");
+
+            var categories = await _dbContext.Categories
+                .Where(c => c.ParentCategoryId == categoryId )
                 .AsNoTracking()
                 .ToListAsync();
             return Result.Success(categories as ICollection<Category>);
@@ -96,12 +108,15 @@ namespace MicroMarket.Services.Catalog.Services
 
         public async Task<Result<Category>> CreateCategory(CategoryCreateRequestDto categoryCreateRequestDto)
         {
-            var parentCategoryExist = await _dbContext.Categories
-                   .Where(c => c.Id == categoryCreateRequestDto.ParentCategoryId)
-                   .Where(c => !c.IsDeleted)
-                   .AnyAsync();
-            if( !parentCategoryExist )
-                return Result.Failure<Category>($"Parent category {categoryCreateRequestDto.ParentCategoryId} is not exist");
+            if (categoryCreateRequestDto.ParentCategoryId is not null)
+            {
+                var parentCategoryExist = await _dbContext.Categories
+                       .Where(c => c.Id == categoryCreateRequestDto.ParentCategoryId)
+                       .Where(c => !c.IsDeleted)
+                       .AnyAsync();
+                if (!parentCategoryExist)
+                    return Result.Failure<Category>($"Parent category {categoryCreateRequestDto.ParentCategoryId} is not exist");
+            }
             var createdCategory = new Category()
             {
                 Name = categoryCreateRequestDto.Name,
@@ -109,7 +124,7 @@ namespace MicroMarket.Services.Catalog.Services
                 ParentCategoryId = categoryCreateRequestDto.ParentCategoryId
             };
             await _dbContext.Categories.AddAsync(createdCategory);
-            // TODO: verify it return object with Id
+            await _dbContext.SaveChangesAsync();
             return createdCategory;
         }
 

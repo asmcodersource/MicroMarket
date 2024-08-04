@@ -6,7 +6,7 @@
     <DockerPublishLocally>False</DockerPublishLocally>
     <ProjectGuid>a71d7c45-3291-4522-bb9d-c2061f71ca37</ProjectGuid>
     <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
-    <DockerServiceUrl>{Scheme}://localhost:{ServicePort}/swagger</DockerServiceUrl>
+    <DockerServiceUrl>{Scheme}://localhost:8081/swagger</DockerServiceUrl>
     <DockerServiceName>micromarket.services.identity</DockerServiceName>
   </PropertyGroup>
   <ItemGroup>

@@ -10,11 +10,11 @@ namespace MicroMarket.Services.Identity.Services
 {
     public class RolesService : IRolesService
     {
-        private readonly AuthDbContext _authDbContext;
+        private readonly IdentityDbContext _authDbContext;
         private readonly RoleManager<IdentityRole> _rolesManager;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public RolesService(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> rolesManager, AuthDbContext authDbContext)
+        public RolesService(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> rolesManager, IdentityDbContext authDbContext)
         {
             _authDbContext = authDbContext;
             _rolesManager = rolesManager;
