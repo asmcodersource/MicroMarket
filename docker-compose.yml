@@ -5,9 +5,9 @@ services:
     image: rabbitmq:management-alpine
     ports:
       - "15672:15672"
+      - "5672:5672"
     networks:
       - internal
-    
 
   micromarket.services.apigateway:
     image: micromarket.services.apigateway

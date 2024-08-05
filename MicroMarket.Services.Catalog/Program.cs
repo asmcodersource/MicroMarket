@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using MicroMarket.Services.Catalog.Interfaces;
 using MicroMarket.Services.Catalog.Services;
 using MicroMarket.Services.Catalog.Models;
+using MicroMarket.Services.SharedCore.MessageBus.Extensions;
 
 // Add services to the container.
 
@@ -21,6 +22,7 @@ if (!EF.IsDesignTime)
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddConfiguredSwaggerGen();
     builder.Services.AddConfiguratedAuthentication(builder.Configuration);
+    builder.Services.AddMessageBusService();
     builder.Services.AddAuthorization();
 } else
 {

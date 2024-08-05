@@ -1,5 +1,6 @@
 using MicroMarket.Services.Basket.DbContexts;
 using MicroMarket.Services.Basket.Extensions;
+using MicroMarket.Services.SharedCore.MessageBus.Extensions;
 using MicroMarket.Services.SharedCore.SharedRedis.Extensions;
 using MicroMarket.Services.SharedCore.TokenValidation.Extensions;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,7 @@ if (!EF.IsDesignTime)
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddConfiguredSwaggerGen();
     builder.Services.AddConfiguratedAuthentication(builder.Configuration);
+    builder.Services.AddMessageBusService();
     builder.Services.AddAuthorization();
 }
 else

@@ -8,13 +8,13 @@ using RabbitMQ.Client;
 
 namespace MicroMarket.Services.SharedCore.MessageBus.Services
 {
-    public class MessageBugService : IDisposable
+    public class MessageBusService : IDisposable, IMessageBusService
     {
         private readonly IConfiguration _configuration;
         private readonly IConnectionFactory _connectionFactory;
         private readonly IConnection _connection;
 
-        public MessageBugService(IConfiguration configuration)
+        public MessageBusService(IConfiguration configuration)
         {
             _configuration = configuration;
             _connectionFactory = new ConnectionFactory {

@@ -3,24 +3,27 @@ using MicroMarket.Services.Basket.DbContexts;
 using MicroMarket.Services.Basket.Interfaces;
 using MicroMarket.Services.Basket.Models;
 using Microsoft.EntityFrameworkCore;
+using MicroMarket.Services.SharedCore.MessageBus.Services;
+using Microsoft.EntityFrameworkCore.Metadata;
+using RabbitMQ.Client;
 
 namespace MicroMarket.Services.Basket.Services
 {
     public class BasketService : IBasketService
     {
-        private readonly BasketDbContext _dbContext; 
+        private readonly BasketDbContext _dbContext;
 
         public BasketService(BasketDbContext basketDbContext)
         {
             _dbContext = basketDbContext;
         }
 
-        public Task<Result<Item>> AddItem(Guid userId, Guid productId, int quantity)
+        public Task<CSharpFunctionalExtensions.Result<Item>> AddItem(Guid userId, Guid productId, int quantity)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<Result<ICollection<Item>>> GetItems(Guid userId)
+        public async Task<CSharpFunctionalExtensions.Result<ICollection<Item>>> GetItems(Guid userId)
         {
             var items = await _dbContext.Items.Where(i => i.CustomerId == userId).AsNoTracking().ToListAsync();
             return Result.Success<ICollection<Item>>(items);
@@ -36,7 +39,7 @@ namespace MicroMarket.Services.Basket.Services
             return Result.Success();
         }
 
-        public async Task<Result<Item>> UpdateQuantity(Guid itemId, int quantity)
+        public async Task<CSharpFunctionalExtensions.Result<Item>> UpdateQuantity(Guid itemId, int quantity)
         {
             var itemToRemove = await _dbContext.Items.Where(i => i.Id == itemId).FirstOrDefaultAsync();
             if (itemToRemove is null)
