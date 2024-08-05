@@ -3,6 +3,9 @@ using MicroMarket.Services.Catalog.DbContexts;
 using MicroMarket.Services.Catalog.Dtos;
 using MicroMarket.Services.Catalog.Interfaces;
 using MicroMarket.Services.Catalog.Models;
+using MicroMarket.Services.SharedCore.MessageBus.MessageContracts;
+using MicroMarket.Services.SharedCore.MessageBus.Services;
+using MicroMarket.Services.SharedCore.RabbitMqRpc;
 using Microsoft.EntityFrameworkCore;
 
 namespace MicroMarket.Services.Catalog.Services
@@ -11,7 +14,7 @@ namespace MicroMarket.Services.Catalog.Services
     {
         private readonly CatalogDbContext _dbContext;
 
-        public ProductsService(CatalogDbContext dbContext)
+        public ProductsService(CatalogDbContext dbContext, IMessageBusService messageBusService)
         {
             _dbContext = dbContext;
         }
@@ -29,7 +32,7 @@ namespace MicroMarket.Services.Catalog.Services
             return Result.Success();
         }
 
-        public async Task<Result<Product>> CreateProduct(ProductCreateRequestDto productCreateRequestDto)
+        public async Task<CSharpFunctionalExtensions.Result<Product>> CreateProduct(ProductCreateRequestDto productCreateRequestDto)
         {
             var isCatetegoryExists = await _dbContext.Categories
                 .Where(c => c.Id == productCreateRequestDto.CategoryId && c.IsActive && !c.IsDeleted)
@@ -57,7 +60,7 @@ namespace MicroMarket.Services.Catalog.Services
             return Result.Success(createdProduct);
         }
 
-        public async Task<Result<Product>> DiffUpdateQuantity(Guid productId, int quantity)
+        public async Task<CSharpFunctionalExtensions.Result<Product>> DiffUpdateQuantity(Guid productId, int quantity)
         {
             var transaction = await _dbContext.Database.BeginTransactionAsync();
             try
@@ -79,7 +82,7 @@ namespace MicroMarket.Services.Catalog.Services
             }
         }
 
-        public async Task<Result<Product>> GetProduct(Guid productId)
+        public async Task<CSharpFunctionalExtensions.Result<Product>> GetProduct(Guid productId)
         {
             var product = await _dbContext.Products
                 .AsNoTracking()
@@ -89,7 +92,7 @@ namespace MicroMarket.Services.Catalog.Services
             return Result.Success(product);
         }
 
-        public async Task<Result<Product>> UpdateProduct(ProductUpdateRequestDto productUpdateRequestDto)
+        public async Task<CSharpFunctionalExtensions.Result<Product>> UpdateProduct(ProductUpdateRequestDto productUpdateRequestDto)
         {
             var transaction = await _dbContext.Database.BeginTransactionAsync();
             try {
@@ -120,7 +123,7 @@ namespace MicroMarket.Services.Catalog.Services
             }
         }
 
-        public async Task<Result<Product>> UpdateQuanity(Guid productId, int quantity)
+        public async Task<CSharpFunctionalExtensions.Result<Product>> UpdateQuanity(Guid productId, int quantity)
         {
             var transaction = await _dbContext.Database.BeginTransactionAsync();
             try

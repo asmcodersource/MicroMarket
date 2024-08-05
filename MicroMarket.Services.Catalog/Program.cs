@@ -18,6 +18,7 @@ if (!EF.IsDesignTime)
     builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
     builder.Services.AddScoped<ICategoriesService, CategoriesService>();
     builder.Services.AddScoped<IProductsService, ProductsService>();
+    builder.Services.AddSingleton<CatalogMessagingService>();
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddConfiguredSwaggerGen();
@@ -29,6 +30,8 @@ if (!EF.IsDesignTime)
     builder.Services.AddDbContext<CatalogDbContext>();
 }
 var app = builder.Build();
+
+var singletonService = app.Services.GetRequiredService<CatalogMessagingService>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -18,24 +18,24 @@ namespace MicroMarket.Services.Basket.Controllers
         }
 
         [HttpGet("{userId}/items")]
-        [Authorize(Roles = "ADMIN,CUSTOMER")]
+        [Authorize(Roles = "ADMIN,MANAGER")]
         public async Task<IActionResult> GetItems(Guid userId)
         {
             var itemsGetResult = await _basketService.GetItems(userId);
             if (itemsGetResult.IsFailure)
                 return BadRequest(itemsGetResult.Error);
-            return Ok(itemsGetResult.Value);
+            return Ok(itemsGetResult.Value.Select(i => new BasketItemGetDto(i)).ToList());
         }
 
         [HttpGet("my/items")]
         [Authorize(Roles = "CUSTOMER")]
         public async Task<IActionResult> GetMyItems()
         {
-            var userId = Guid.Parse(User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value);
+            var userId = Guid.Parse(User.Claims.First(c => c.Type == "Id").Value);
             var itemsGetResult = await _basketService.GetItems(userId);
             if (itemsGetResult.IsFailure)
                 return BadRequest(itemsGetResult.Error);
-            return Ok(itemsGetResult.Value);
+            return Ok(itemsGetResult.Value.Select(i => new BasketItemGetDto(i)).ToList());
         }
 
         [HttpPost("my/items/add-product/{productId}")]
@@ -44,11 +44,11 @@ namespace MicroMarket.Services.Basket.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState.ToList());
-            var userId = Guid.Parse(User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value);
+            var userId = Guid.Parse(User.Claims.First(c => c.Type == "Id").Value);
             var itemsAddResult = await _basketService.AddItem(userId, productId, newQuantityDto.NewQuantity);
             if (itemsAddResult.IsFailure)
                 return BadRequest(itemsAddResult.Error);
-            return Ok(itemsAddResult.Value);
+            return Ok(new BasketItemGetDto(itemsAddResult.Value));
         }
 
         [HttpPost("{userId}/items/add-product/{productId}")]
@@ -60,7 +60,7 @@ namespace MicroMarket.Services.Basket.Controllers
             var itemsAddResult = await _basketService.AddItem(userId, productId, newQuantityDto.NewQuantity);
             if (itemsAddResult.IsFailure)
                 return BadRequest(itemsAddResult.Error);
-            return Ok(itemsAddResult.Value);
+            return Ok(new BasketItemGetDto(itemsAddResult.Value));
         }
 
         [HttpPut("{itemId}/update-quantity")]
@@ -69,10 +69,11 @@ namespace MicroMarket.Services.Basket.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState.ToList());
-            var itemsQuanitytUpdateResult = await _basketService.UpdateQuantity(itemId, newQuantityDto.NewQuantity);
+            var userId = Guid.Parse(User.Claims.First(c => c.Type == "Id").Value);
+            var itemsQuanitytUpdateResult = await _basketService.UpdateQuantity(userId, itemId, newQuantityDto.NewQuantity);
             if (itemsQuanitytUpdateResult.IsFailure)
                 return BadRequest(itemsQuanitytUpdateResult.Error);
-            return Ok(itemsQuanitytUpdateResult.Value);
+            return Ok(new BasketItemGetDto(itemsQuanitytUpdateResult.Value));
         }
 
         [HttpDelete("{itemId}")]
@@ -81,7 +82,8 @@ namespace MicroMarket.Services.Basket.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState.ToList());
-            var itemsRemoveResult = await _basketService.RemoveItem(itemId);
+            var userId = Guid.Parse(User.Claims.First(c => c.Type == "Id").Value);
+            var itemsRemoveResult = await _basketService.RemoveItem(userId, itemId);
             if (itemsRemoveResult.IsFailure)
                 return BadRequest(itemsRemoveResult.Error);
             return Ok();

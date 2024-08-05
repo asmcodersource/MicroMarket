@@ -12,7 +12,7 @@ namespace MicroMarket.Services.SharedCore.MessageBus.Extensions
     {
         public static void AddMessageBusService(this IServiceCollection services)
         {
-            services.AddSingleton<MessageBusService>();
+            services.AddSingleton<IMessageBusService, MessageBusService>();
         }
     }
 }

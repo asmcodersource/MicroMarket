@@ -60,6 +60,7 @@ services:
       dockerfile: MicroMarket.Services.Catalog/Dockerfile
     environment:
       - ConnectionString=Host=${CATALOG_POSTGRES_HOST};Port=${CATALOG_POSTGRES_PORT};Database=${CATALOG_POSTGRES_DB};Username=${CATALOG_POSTGRES_USER};Password=${CATALOG_POSTGRES_PASSWORD}
+      - RabbitHost=${RABBIT_HOST}
     depends_on:
       - shared.redis
       - micromarket.services.catalog.postgres
@@ -82,6 +83,7 @@ services:
       dockerfile: MicroMarket.Services.Basket/Dockerfile
     environment:
       - ConnectionString=Host=${BASKET_POSTGRES_HOST};Port=${BASKET_POSTGRES_PORT};Database=${BASKET_POSTGRES_DB};Username=${BASKET_POSTGRES_USER};Password=${BASKET_POSTGRES_PASSWORD}
+      - RabbitHost=${RABBIT_HOST}
     depends_on:
       - shared.redis
       - micromarket.services.basket.postgres

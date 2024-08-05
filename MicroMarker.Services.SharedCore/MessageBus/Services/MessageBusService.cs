@@ -17,8 +17,12 @@ namespace MicroMarket.Services.SharedCore.MessageBus.Services
         public MessageBusService(IConfiguration configuration)
         {
             _configuration = configuration;
-            _connectionFactory = new ConnectionFactory {
-                HostName = "micromarket.services.rabbitmq"
+            var rabbitHost = _configuration["RabbitHost"];
+            if (rabbitHost is null)
+                throw new InvalidOperationException();
+            _connectionFactory = new ConnectionFactory
+            {
+                HostName = rabbitHost
             };
             _connection = _connectionFactory.CreateConnection();
         }

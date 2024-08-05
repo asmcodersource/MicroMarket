@@ -1,5 +1,7 @@
 using MicroMarket.Services.Basket.DbContexts;
 using MicroMarket.Services.Basket.Extensions;
+using MicroMarket.Services.Basket.Interfaces;
+using MicroMarket.Services.Basket.Services;
 using MicroMarket.Services.SharedCore.MessageBus.Extensions;
 using MicroMarket.Services.SharedCore.SharedRedis.Extensions;
 using MicroMarket.Services.SharedCore.TokenValidation.Extensions;
@@ -13,6 +15,7 @@ if (!EF.IsDesignTime)
     // Add services to the container.
     builder.Services.AddDbContext<BasketDbContext>();
     builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
+    builder.Services.AddScoped<IBasketService, BasketService>();
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddConfiguredSwaggerGen();
