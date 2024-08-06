@@ -5,12 +5,15 @@ using MicroMarket.Services.Catalog.Dtos;
 using MicroMarket.Services.Catalog.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using MicroMarket.Services.SharedCore.MessageBus.Services;
+using RabbitMQ.Client;
 
 namespace MicroMarket.Services.Catalog.Services
 {
     public class CategoriesService : ICategoriesService
     {
         private readonly CatalogDbContext _dbContext;
+
 
         public CategoriesService(CatalogDbContext dbContext)
         {

@@ -1,4 +1,6 @@
-﻿using MicroMarket.Services.Catalog.DbContexts;
+﻿using CSharpFunctionalExtensions;
+using MicroMarket.Services.Catalog.DbContexts;
+using MicroMarket.Services.Catalog.Models;
 using MicroMarket.Services.SharedCore.MessageBus.MessageContracts;
 using MicroMarket.Services.SharedCore.MessageBus.Services;
 using MicroMarket.Services.SharedCore.RabbitMqRpc;
@@ -26,21 +28,31 @@ namespace MicroMarket.Services.Catalog.Services
             using (var scope = _serviceScopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
-                var product = dbContext.Products
-                    .AsNoTracking()
-                    .SingleOrDefault(p => p.Id == addItemToBasket.ItemProductId);
-                if (product is null)
-                    return SharedCore.RabbitMqRpc.Result<ItemInformationResponse>.Failure("Product doesn't exist");
-                var response = new ItemInformationResponse()
+                var transaction = dbContext.Database.BeginTransaction();
+                try
                 {
-                    ItemProductId = product.Id,
-                    AvailableQuantity = product.StockQuantity,
-                    ItemProductName = product.Name,
-                    ItemProductPrice = product.Price,
-                    IsActive = product.IsActive,
-                    IsDeleted = product.IsDeleted
-                };
-                return SharedCore.RabbitMqRpc.Result<ItemInformationResponse>.Success(response);
+                    var product = dbContext.Products
+                        .AsNoTracking()
+                        .SingleOrDefault(p => p.Id == addItemToBasket.ItemProductId);
+                    if (product is null)
+                        return SharedCore.RabbitMqRpc.Result<ItemInformationResponse>.Failure("Product doesn't exist");
+                    var response = new ItemInformationResponse()
+                    {
+                        ItemProductId = product.Id,
+                        AvailableQuantity = product.StockQuantity,
+                        ItemProductName = product.Name,
+                        ItemProductPrice = product.Price,
+                        IsActive = product.IsActive,
+                        IsDeleted = product.IsDeleted
+                    };
+                    transaction.Commit();
+                    return SharedCore.RabbitMqRpc.Result<ItemInformationResponse>.Success(response);
+                }
+                catch(Exception ex)
+                {
+                    transaction.Rollback();
+                    return SharedCore.RabbitMqRpc.Result<ItemInformationResponse>.Failure(ex.Message);
+                }
             }
         }
     }

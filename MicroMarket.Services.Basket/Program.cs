@@ -16,6 +16,7 @@ if (!EF.IsDesignTime)
     builder.Services.AddDbContext<BasketDbContext>();
     builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
     builder.Services.AddScoped<IBasketService, BasketService>();
+    builder.Services.AddSingleton<BasketMessagingService>();
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddConfiguredSwaggerGen();
@@ -28,6 +29,9 @@ else
     builder.Services.AddDbContext<BasketDbContext>();
 }
 var app = builder.Build();
+
+
+var singletonService = app.Services.GetRequiredService<BasketMessagingService>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

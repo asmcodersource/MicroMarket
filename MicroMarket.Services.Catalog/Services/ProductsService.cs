@@ -7,16 +7,22 @@ using MicroMarket.Services.SharedCore.MessageBus.MessageContracts;
 using MicroMarket.Services.SharedCore.MessageBus.Services;
 using MicroMarket.Services.SharedCore.RabbitMqRpc;
 using Microsoft.EntityFrameworkCore;
+using RabbitMQ.Client;
+using System.Text;
+using System.Text.Json;
 
 namespace MicroMarket.Services.Catalog.Services
 {
     public class ProductsService : IProductsService
     {
         private readonly CatalogDbContext _dbContext;
+        private readonly RabbitMQ.Client.IModel _model;
 
         public ProductsService(CatalogDbContext dbContext, IMessageBusService messageBusService)
         {
             _dbContext = dbContext;
+            _model = messageBusService.CreateModel();
+            _model.ExchangeDeclare("catalog.messages.exchange", ExchangeType.Direct, true, false, null);
         }
 
         public async Task<Result> DeleteProduct(Guid productId)
@@ -29,6 +35,7 @@ namespace MicroMarket.Services.Catalog.Services
             productToDelete.IsDeleted = true;
             _dbContext.Products.Update(productToDelete);
             await _dbContext.SaveChangesAsync();
+            ProductUpdatedEventPublish(productToDelete);
             return Result.Success();
         }
 
@@ -57,6 +64,7 @@ namespace MicroMarket.Services.Catalog.Services
             };
             await _dbContext.Products.AddAsync(createdProduct);
             await _dbContext.SaveChangesAsync();
+            ProductUpdatedEventPublish(createdProduct);
             return Result.Success(createdProduct);
         }
 
@@ -73,6 +81,7 @@ namespace MicroMarket.Services.Catalog.Services
                 _dbContext.Products.Update(product);
                 await _dbContext.SaveChangesAsync();
                 await transaction.CommitAsync();
+                ProductUpdatedEventPublish(product);
                 return Result.Success(product);
             }
             catch(Exception ex)
@@ -114,6 +123,7 @@ namespace MicroMarket.Services.Catalog.Services
                 _dbContext.Products.Update(product);
                 await _dbContext.SaveChangesAsync();
                 await transaction.CommitAsync();
+                ProductUpdatedEventPublish(product);
                 return Result.Success(product);
             }
             catch (Exception ex)
@@ -136,6 +146,7 @@ namespace MicroMarket.Services.Catalog.Services
                 _dbContext.Products.Update(product);
                 await _dbContext.SaveChangesAsync();
                 await transaction.CommitAsync();
+                ProductUpdatedEventPublish(product);
                 return Result.Success(product);
             }
             catch (Exception ex)
@@ -143,6 +154,22 @@ namespace MicroMarket.Services.Catalog.Services
                 await transaction.RollbackAsync();
                 return Result.Failure<Product>($"Some error happend during DiffUpdateQuantity method execution, error={ex.Message}");
             }
+        }
+
+        private void ProductUpdatedEventPublish(Product product)
+        {
+            var itemProductInfo = new ItemInformationResponse()
+            {
+                ItemProductId = product.Id,
+                ItemProductName = product.Name,
+                ItemProductPrice = product.Price,
+                AvailableQuantity = product.StockQuantity,
+                IsActive = product.IsActive,
+                IsDeleted = product.IsDeleted
+            };
+            var json = JsonSerializer.Serialize(itemProductInfo);
+            var bytes = Encoding.UTF8.GetBytes(json);
+            _model.BasicPublish("catalog.messages.exchange", "product-update", true, null, bytes);
         }
     }
 }

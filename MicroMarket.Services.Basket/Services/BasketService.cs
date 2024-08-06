@@ -52,6 +52,7 @@ namespace MicroMarket.Services.Basket.Services
             }
             else
             {
+                product.CatalogProductId = productId;
                 product.Quantity = response.Value.AvailableQuantity;
                 product.Name = response.Value.ItemProductName;
                 product.Price = response.Value.ItemProductPrice;
