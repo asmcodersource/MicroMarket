@@ -1,6 +1,4 @@
-﻿using CSharpFunctionalExtensions;
-using MicroMarket.Services.Catalog.DbContexts;
-using MicroMarket.Services.Catalog.Models;
+﻿using MicroMarket.Services.Catalog.DbContexts;
 using MicroMarket.Services.SharedCore.MessageBus.MessageContracts;
 using MicroMarket.Services.SharedCore.MessageBus.Services;
 using MicroMarket.Services.SharedCore.RabbitMqRpc;
@@ -52,7 +50,7 @@ namespace MicroMarket.Services.Catalog.Services
                     transaction.Commit();
                     return SharedCore.RabbitMqRpc.Result<ItemInformationResponse>.Success(response);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     transaction.Rollback();
                     return SharedCore.RabbitMqRpc.Result<ItemInformationResponse>.Failure(ex.Message);

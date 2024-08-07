@@ -4,10 +4,7 @@ using MicroMarket.Services.Catalog.Dtos;
 using MicroMarket.Services.Catalog.Interfaces;
 using MicroMarket.Services.Catalog.Models;
 using MicroMarket.Services.SharedCore.MessageBus.MessageContracts;
-using MicroMarket.Services.SharedCore.MessageBus.Services;
-using MicroMarket.Services.SharedCore.RabbitMqRpc;
 using Microsoft.EntityFrameworkCore;
-using RabbitMQ.Client;
 using System.Text;
 using System.Text.Json;
 
@@ -83,7 +80,7 @@ namespace MicroMarket.Services.Catalog.Services
                 ProductUpdatedEventPublish(product);
                 return Result.Success(product);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 await transaction.RollbackAsync();
                 return Result.Failure<Product>($"Some error happend during DiffUpdateQuantity method execution, error={ex.Message}");
@@ -103,7 +100,8 @@ namespace MicroMarket.Services.Catalog.Services
         public async Task<CSharpFunctionalExtensions.Result<Product>> UpdateProduct(ProductUpdateRequestDto productUpdateRequestDto)
         {
             var transaction = await _dbContext.Database.BeginTransactionAsync();
-            try {
+            try
+            {
                 var product = await _dbContext.Products.SingleOrDefaultAsync(p => p.Id == productUpdateRequestDto.Id && !p.IsDeleted);
                 if (product is null)
                     return Result.Failure<Product>($"Product {productUpdateRequestDto.Id} is not exists");

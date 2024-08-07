@@ -2,13 +2,12 @@
 using MicroMarket.Services.Basket.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace MicroMarket.Services.Basket.Controllers
 {
     [ApiController]
     [Route("/api/[controller]")]
-    public class BasketController: ControllerBase
+    public class BasketController : ControllerBase
     {
         private readonly IBasketService _basketService;
 

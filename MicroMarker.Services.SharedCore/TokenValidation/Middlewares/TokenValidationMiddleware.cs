@@ -1,10 +1,5 @@
 ﻿using MicroMarket.Services.SharedCore.TokenValidation.Services;
 using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MicroMarket.Services.SharedCore.TokenValidation.Middlewares
 {
@@ -14,7 +9,7 @@ namespace MicroMarket.Services.SharedCore.TokenValidation.Middlewares
         private readonly TokenValidationService _tokenValidationService;
         private readonly string _tokenPrefix = "Bearer ";
 
-        public TokenValidationMiddleware(RequestDelegate next, TokenValidationService tokenValidationService) 
+        public TokenValidationMiddleware(RequestDelegate next, TokenValidationService tokenValidationService)
         {
             _next = next;
             _tokenValidationService = tokenValidationService;
@@ -33,7 +28,8 @@ namespace MicroMarket.Services.SharedCore.TokenValidation.Middlewares
                     await context.Response.WriteAsJsonAsync("Token revoked");
                 else
                     await context.Response.WriteAsJsonAsync("Token verification inernal server fault");
-            } else
+            }
+            else
             {
                 await _next(context);
             }

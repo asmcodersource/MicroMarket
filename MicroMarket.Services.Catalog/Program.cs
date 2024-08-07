@@ -1,12 +1,9 @@
-using MicroMarket.Services.SharedCore.SharedRedis.Extensions;
-using MicroMarket.Services.SharedCore.TokenValidation.Extensions;
-using MicroMarket.Services.Catalog.Extensions;
 using MicroMarket.Services.Catalog.DbContexts;
-using Microsoft.EntityFrameworkCore;
 using MicroMarket.Services.Catalog.Interfaces;
 using MicroMarket.Services.Catalog.Services;
-using MicroMarket.Services.Catalog.Models;
+using MicroMarket.Services.SharedCore.Extensions;
 using MicroMarket.Services.SharedCore.MessageBus.Extensions;
+using Microsoft.EntityFrameworkCore;
 
 // Add services to the container.
 
@@ -21,11 +18,12 @@ if (!EF.IsDesignTime)
     builder.Services.AddSingleton<CatalogMessagingService>();
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddConfiguredSwaggerGen();
+    builder.Services.AddConfiguredSwaggerGen("MicroMarket.Service.Catalog API");
     builder.Services.AddConfiguratedAuthentication(builder.Configuration);
     builder.Services.AddMessageBusService();
     builder.Services.AddAuthorization();
-} else
+}
+else
 {
     builder.Services.AddDbContext<CatalogDbContext>();
 }

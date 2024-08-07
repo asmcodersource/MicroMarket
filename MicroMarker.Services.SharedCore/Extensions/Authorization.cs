@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
-namespace MicroMarket.Services.Basket.Extensions
+namespace MicroMarket.Services.SharedCore.Extensions
 {
     public static class Authorization
     {

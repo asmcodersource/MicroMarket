@@ -3,7 +3,6 @@ using MicroMarket.Services.Catalog.Interfaces;
 using MicroMarket.Services.Catalog.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel;
 
 namespace MicroMarket.Services.Catalog.Controllers
 {
@@ -66,9 +65,10 @@ namespace MicroMarket.Services.Catalog.Controllers
             var (category, products) = getCategoryProductsResult.Value;
             var categoryDto = new CategoryGetResponseDto(category);
             var productsDto = products.Select(p => new ProductGetResponseDto(p));
-            return Ok(new { 
-                category = categoryDto, 
-                products = productsDto 
+            return Ok(new
+            {
+                category = categoryDto,
+                products = productsDto
             });
         }
 

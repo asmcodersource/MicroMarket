@@ -2,12 +2,9 @@
 using MicroMarket.Services.Basket.DbContexts;
 using MicroMarket.Services.Basket.Interfaces;
 using MicroMarket.Services.Basket.Models;
-using Microsoft.EntityFrameworkCore;
-using MicroMarket.Services.SharedCore.MessageBus.Services;
-using Microsoft.EntityFrameworkCore.Metadata;
-using RabbitMQ.Client;
-using MicroMarket.Services.SharedCore.RabbitMqRpc;
 using MicroMarket.Services.SharedCore.MessageBus.MessageContracts;
+using MicroMarket.Services.SharedCore.RabbitMqRpc;
+using Microsoft.EntityFrameworkCore;
 
 namespace MicroMarket.Services.Basket.Services
 {
@@ -58,7 +55,7 @@ namespace MicroMarket.Services.Basket.Services
                 await _dbContext.SaveChangesAsync();
             }
 
-            if ( !response.Value.IsActive )
+            if (!response.Value.IsActive)
                 return Result.Failure<Item>($"Item with product {productId} wasn't added to the basket, cause product isn't active");
             if (response.Value.IsDeleted)
                 return Result.Failure<Item>($"Item with product {productId} wasn't added to the basket, cause product is deleted");

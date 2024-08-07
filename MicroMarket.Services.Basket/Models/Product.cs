@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace MicroMarket.Services.Basket.Models
+﻿namespace MicroMarket.Services.Basket.Models
 {
     public class Product
     {

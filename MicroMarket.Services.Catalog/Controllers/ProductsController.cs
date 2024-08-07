@@ -1,6 +1,5 @@
 ﻿using MicroMarket.Services.Catalog.Dtos;
 using MicroMarket.Services.Catalog.Interfaces;
-using MicroMarket.Services.Catalog.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

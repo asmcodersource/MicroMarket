@@ -17,7 +17,8 @@ namespace MicroMarket.Services.Identity.DbContexts
             if (isAdminRolePresented)
                 return;
             string[] roles = ["Admin", "Manager", "Customer"];
-            foreach (var role in roles) {
+            foreach (var role in roles)
+            {
                 IdentityRole identityRole = new IdentityRole(role);
                 await roleManager.CreateAsync(identityRole);
             }

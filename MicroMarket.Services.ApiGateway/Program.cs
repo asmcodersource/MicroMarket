@@ -1,12 +1,8 @@
 using MicroMarket.Services.SharedCore.SharedRedis.Extensions;
 using MicroMarket.Services.SharedCore.TokenValidation.Extensions;
-using Microsoft.Extensions.Configuration;
 using Microsoft.OpenApi.Models;
-using MMLib.SwaggerForOcelot;
-using MMLib.SwaggerForOcelot.DependencyInjection;
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
-using Ocelot.Values;
 
 var builder = WebApplication.CreateBuilder(args);
 

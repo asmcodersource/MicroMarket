@@ -17,7 +17,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MicroMarket.Services.ApiGat
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MicroMarket.Services.Basket", "MicroMarket.Services.Basket\MicroMarket.Services.Basket.csproj", "{3150755F-D5D1-452F-BB6C-2CF63F0A21B8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{D675817D-38C0-4D6F-ABE3-BC49EEC97089}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "Tests\Tests.csproj", "{D675817D-38C0-4D6F-ABE3-BC49EEC97089}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroMarket.Services.Ordering", "MicroMarket.Services.Ordering\MicroMarket.Services.Ordering.csproj", "{B9CF5B41-DBED-4EB4-98B8-C5EE68034D76}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,6 +55,10 @@ Global
 		{D675817D-38C0-4D6F-ABE3-BC49EEC97089}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D675817D-38C0-4D6F-ABE3-BC49EEC97089}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D675817D-38C0-4D6F-ABE3-BC49EEC97089}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B9CF5B41-DBED-4EB4-98B8-C5EE68034D76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B9CF5B41-DBED-4EB4-98B8-C5EE68034D76}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B9CF5B41-DBED-4EB4-98B8-C5EE68034D76}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B9CF5B41-DBED-4EB4-98B8-C5EE68034D76}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

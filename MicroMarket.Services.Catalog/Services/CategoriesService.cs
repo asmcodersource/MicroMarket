@@ -1,12 +1,9 @@
-﻿using MicroMarket.Services.Catalog.Models;
-using CSharpFunctionalExtensions;
-using MicroMarket.Services.Catalog.Interfaces;
-using MicroMarket.Services.Catalog.Dtos;
+﻿using CSharpFunctionalExtensions;
 using MicroMarket.Services.Catalog.DbContexts;
+using MicroMarket.Services.Catalog.Dtos;
+using MicroMarket.Services.Catalog.Interfaces;
+using MicroMarket.Services.Catalog.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using MicroMarket.Services.SharedCore.MessageBus.Services;
-using RabbitMQ.Client;
 
 namespace MicroMarket.Services.Catalog.Services
 {
@@ -78,7 +75,7 @@ namespace MicroMarket.Services.Catalog.Services
                 return Result.Failure<ICollection<Category>>($"Parent category {categoryId} is not exists");
 
             var categories = await _dbContext.Categories
-                .Where(c => c.ParentCategoryId == categoryId )
+                .Where(c => c.ParentCategoryId == categoryId)
                 .AsNoTracking()
                 .ToListAsync();
             return Result.Success(categories as ICollection<Category>);
@@ -92,13 +89,13 @@ namespace MicroMarket.Services.Catalog.Services
                 .SingleOrDefaultAsync(c => c.Id == categoryUpdateRequestDto.Id);
             if (category is null)
                 return Result.Failure<Category>($"Category {categoryUpdateRequestDto.Id} is not exist");
-            if( categoryUpdateRequestDto.ParentCategoryId is not null)
+            if (categoryUpdateRequestDto.ParentCategoryId is not null)
             {
                 var parentCategoryExist = await _dbContext.Categories
                     .Where(c => c.Id == categoryUpdateRequestDto.ParentCategoryId)
                     .Where(c => !c.IsDeleted)
                     .AnyAsync();
-                if( !parentCategoryExist )
+                if (!parentCategoryExist)
                     return Result.Failure<Category>($"Parent category {categoryUpdateRequestDto.ParentCategoryId} is not exist");
             }
 
@@ -141,7 +138,7 @@ namespace MicroMarket.Services.Catalog.Services
             category.IsDeleted = true;
             foreach (var product in category.Products)
                 product.IsDeleted = true;
-            foreach(var childCategory in category.ChildCategories)
+            foreach (var childCategory in category.ChildCategories)
                 await MarkAsDeleted(childCategory.Id);
         }
 

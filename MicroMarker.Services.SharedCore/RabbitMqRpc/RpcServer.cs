@@ -1,9 +1,7 @@
-﻿using RabbitMQ.Client.Events;
-using RabbitMQ.Client;
+﻿using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 using System.Text;
 using System.Text.Json;
-using StackExchange.Redis;
-using System.Threading.Channels;
 
 namespace MicroMarket.Services.SharedCore.RabbitMqRpc
 {

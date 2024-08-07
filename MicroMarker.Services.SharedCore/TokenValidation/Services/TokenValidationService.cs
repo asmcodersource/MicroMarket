@@ -1,11 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Distributed;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MicroMarket.Services.SharedCore.TokenValidation.Services
 {
@@ -13,7 +7,7 @@ namespace MicroMarket.Services.SharedCore.TokenValidation.Services
     {
         private readonly IDistributedCache _distributeCache;
 
-        public TokenValidationService(IDistributedCache distributedCache) 
+        public TokenValidationService(IDistributedCache distributedCache)
         {
             _distributeCache = distributedCache;
         }

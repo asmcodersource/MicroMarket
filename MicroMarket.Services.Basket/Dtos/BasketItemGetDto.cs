@@ -1,5 +1,4 @@
 ﻿using MicroMarket.Services.Basket.Models;
-using System.ComponentModel.DataAnnotations;
 
 namespace MicroMarket.Services.Basket.Dtos
 {
@@ -16,7 +15,7 @@ namespace MicroMarket.Services.Basket.Dtos
         public bool IsProductActive { get; set; }
         public bool IsEnough { get; init; }
 
-        public BasketItemGetDto(Item item) 
+        public BasketItemGetDto(Item item)
         {
             Id = item.Id;
             CustomerId = item.CustomerId;

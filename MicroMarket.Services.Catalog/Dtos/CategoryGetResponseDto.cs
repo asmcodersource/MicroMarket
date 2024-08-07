@@ -11,7 +11,7 @@ namespace MicroMarket.Services.Catalog.Dtos
         public ICollection<Category> ChildCategories { get; set; }
         public bool IsActive { get; set; } = false;
 
-        public CategoryGetResponseDto(Category category) 
+        public CategoryGetResponseDto(Category category)
         {
             Id = category.Id;
             Name = category.Name;

@@ -1,6 +1,4 @@
-﻿using MicroMarket.Services.Catalog.Models;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace MicroMarket.Services.Catalog.Dtos
 {

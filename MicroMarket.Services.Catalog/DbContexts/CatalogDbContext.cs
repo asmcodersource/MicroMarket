@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MicroMarket.Services.Catalog.DbContexts
 {
-    public class CatalogDbContext: DbContext
+    public class CatalogDbContext : DbContext
     {
         private readonly IConfiguration _configuration;
         public DbSet<Category> Categories { get; set; }

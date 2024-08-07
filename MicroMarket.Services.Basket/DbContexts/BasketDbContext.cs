@@ -1,9 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
-using MicroMarket.Services.Basket.Models;
+﻿using MicroMarket.Services.Basket.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace MicroMarket.Services.Basket.DbContexts
 {
-    public class BasketDbContext: DbContext
+    public class BasketDbContext : DbContext
     {
         private readonly IConfiguration _configuration;
         public DbSet<Item> Items { get; set; }

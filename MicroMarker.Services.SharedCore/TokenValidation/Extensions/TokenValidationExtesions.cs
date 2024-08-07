@@ -1,8 +1,7 @@
-﻿using System.Text;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.AspNetCore.Builder;
-using MicroMarket.Services.SharedCore.TokenValidation.Middlewares;
+﻿using MicroMarket.Services.SharedCore.TokenValidation.Middlewares;
 using MicroMarket.Services.SharedCore.TokenValidation.Services;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MicroMarket.Services.SharedCore.TokenValidation.Extensions
 {

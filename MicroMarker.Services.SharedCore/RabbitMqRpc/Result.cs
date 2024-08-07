@@ -1,6 +1,4 @@
-﻿using CSharpFunctionalExtensions;
-
-namespace MicroMarket.Services.SharedCore.RabbitMqRpc
+﻿namespace MicroMarket.Services.SharedCore.RabbitMqRpc
 {
     public class Result<ValueType>
     {
@@ -29,7 +27,7 @@ namespace MicroMarket.Services.SharedCore.RabbitMqRpc
 
         public static CSharpFunctionalExtensions.Result<ValueType> ConvertToCSharpFunctionalExtensionsResult(Result<ValueType> result)
         {
-            if( result.IsSuccesful)
+            if (result.IsSuccesful)
                 return CSharpFunctionalExtensions.Result.Success<ValueType>(result.Value);
             else
                 return CSharpFunctionalExtensions.Result.Failure<ValueType>(result.Error);
