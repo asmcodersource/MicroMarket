@@ -21,7 +21,7 @@ namespace MicroMarket.Services.SharedCore.Pagination
                 return Result.Failure<PaginatedList>("Page number and items per page must be positive value");
 
             var count = await query.CountAsync();
-            if (count / entriesPerPage < page)
+            if (count / entriesPerPage <= page)
                 return Result.Failure<PaginatedList>("Requested page doesn't exist");
 
             var items = await query
