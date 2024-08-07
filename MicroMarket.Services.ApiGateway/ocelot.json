@@ -41,6 +41,20 @@
       "UpstreamPathTemplate": "/api/basket/{everything}",
       "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ],
       "SwaggerKey": "Basket"
+    },
+    {
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "DownstreamPathTemplate": "/api/ordering/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "micromarket.services.ordering",
+          "Port": 8081
+        }
+      ],
+      "UpstreamPathTemplate": "/api/ordering/{everything}",
+      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ],
+      "SwaggerKey": "Ordering"
     }
   ],
   "SwaggerEndPoints": [
@@ -71,6 +85,16 @@
           "Name": "Basket API",
           "Version": "v1",
           "Url": "https://micromarket.services.basket:8081/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "Ordering",
+      "Config": [
+        {
+          "Name": "Ordering API",
+          "Version": "v1",
+          "Url": "https://micromarket.services.ordering:8081/swagger/v1/swagger.json"
         }
       ]
     }

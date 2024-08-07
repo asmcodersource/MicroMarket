@@ -62,8 +62,8 @@ services:
       - ConnectionString=Host=${CATALOG_POSTGRES_HOST};Port=${CATALOG_POSTGRES_PORT};Database=${CATALOG_POSTGRES_DB};Username=${CATALOG_POSTGRES_USER};Password=${CATALOG_POSTGRES_PASSWORD}
       - RabbitHost=${RABBIT_HOST}
     depends_on:
-      - shared.redis
       - micromarket.services.catalog.postgres
+      - shared.redis
     networks:
       - internal
 
@@ -85,8 +85,8 @@ services:
       - ConnectionString=Host=${BASKET_POSTGRES_HOST};Port=${BASKET_POSTGRES_PORT};Database=${BASKET_POSTGRES_DB};Username=${BASKET_POSTGRES_USER};Password=${BASKET_POSTGRES_PASSWORD}
       - RabbitHost=${RABBIT_HOST}
     depends_on:
-      - shared.redis
       - micromarket.services.basket.postgres
+      - shared.redis
     networks:
       - internal
 
@@ -99,9 +99,33 @@ services:
     networks:
       - internal
 
+  micromarket.services.ordering:
+    image: micromarket.services.ordering
+    build:
+      context: .
+      dockerfile: MicroMarket.Services.Ordering/Dockerfile
+    environment:
+      - ConnectionString=Host=${ORDERING_POSTGRES_HOST};Port=${ORDERING_POSTGRES_PORT};Database=${ORDERING_POSTGRES_DB};Username=${ORDERING_POSTGRES_USER};Password=${ORDERING_POSTGRES_PASSWORD}
+      - RabbitHost=${RABBIT_HOST}
+    depends_on:
+      - micromarket.services.ordering.postgres
+      - shared.redis
+    networks:
+      - internal
+
+  micromarket.services.ordering.postgres:
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=${ORDERING_POSTGRES_DB}
+      - POSTGRES_USER=${ORDERING_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${ORDERING_POSTGRES_PASSWORD}
+    networks:
+      - internal
+
 networks:
   internal:
     driver: bridge
+
 
 
 

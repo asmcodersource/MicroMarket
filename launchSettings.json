@@ -7,7 +7,8 @@
         "micromarket.services.identity": "StartDebugging",
         "micromarket.services.catalog": "StartDebugging",
         "micromarket.services.apigateway": "StartDebugging",
-        "micromarket.services.basket": "StartDebugging"
+        "micromarket.services.basket": "StartDebugging",
+        "micromarket.services.ordering": "StartDebugging"
       }
     }
   }
