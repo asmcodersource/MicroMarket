@@ -16,13 +16,10 @@ namespace MicroMarket.Services.Basket.Services
         private readonly BasketDbContext _dbContext;
         private readonly RpcClient<AddItemToBasket, ItemInformationResponse> _itemAddRpcClient;
 
-        public BasketService(BasketDbContext basketDbContext, IMessageBusService messageBusService)
+        public BasketService(BasketDbContext basketDbContext, BasketMessagingService basketMessagingService)
         {
             _dbContext = basketDbContext;
-            _itemAddRpcClient = new RpcClient<AddItemToBasket, ItemInformationResponse>(
-                messageBusService.CreateModel(),
-                "catalog.item-add.rpc"
-            );
+            _itemAddRpcClient = basketMessagingService.ItemAddRpcClient;
         }
 
         public async Task<CSharpFunctionalExtensions.Result<Item>> AddItem(Guid userId, Guid productId, int quantity, bool onlyOwnerAllowed = true)

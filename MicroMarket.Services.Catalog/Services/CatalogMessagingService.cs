@@ -5,6 +5,7 @@ using MicroMarket.Services.SharedCore.MessageBus.MessageContracts;
 using MicroMarket.Services.SharedCore.MessageBus.Services;
 using MicroMarket.Services.SharedCore.RabbitMqRpc;
 using Microsoft.EntityFrameworkCore;
+using RabbitMQ.Client;
 
 namespace MicroMarket.Services.Catalog.Services
 {
@@ -12,15 +13,18 @@ namespace MicroMarket.Services.Catalog.Services
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly RpcServer<AddItemToBasket, ItemInformationResponse> _rpcServer;
+        public IModel Model { get; init; }
 
         public CatalogMessagingService(IServiceScopeFactory serviceScopeFactory, IMessageBusService messageBusService)
         {
+            Model = messageBusService.CreateModel();
             _serviceScopeFactory = serviceScopeFactory;
             _rpcServer = new RpcServer<AddItemToBasket, ItemInformationResponse>(
-                messageBusService.CreateModel(),
+                Model,
                 "catalog.item-add.rpc",
                 HandleBasketItemAdd
             );
+            Model.ExchangeDeclare("catalog.messages.exchange", ExchangeType.Direct, true, false, null);
         }
 
         private SharedCore.RabbitMqRpc.Result<ItemInformationResponse> HandleBasketItemAdd(AddItemToBasket addItemToBasket)

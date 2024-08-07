@@ -18,11 +18,10 @@ namespace MicroMarket.Services.Catalog.Services
         private readonly CatalogDbContext _dbContext;
         private readonly RabbitMQ.Client.IModel _model;
 
-        public ProductsService(CatalogDbContext dbContext, IMessageBusService messageBusService)
+        public ProductsService(CatalogDbContext dbContext, CatalogMessagingService catalogMessagingService)
         {
             _dbContext = dbContext;
-            _model = messageBusService.CreateModel();
-            _model.ExchangeDeclare("catalog.messages.exchange", ExchangeType.Direct, true, false, null);
+            _model = catalogMessagingService.Model;
         }
 
         public async Task<Result> DeleteProduct(Guid productId)

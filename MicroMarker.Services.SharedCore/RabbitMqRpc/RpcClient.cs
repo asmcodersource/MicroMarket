@@ -14,11 +14,11 @@ namespace MicroMarket.Services.SharedCore.RabbitMqRpc
         private readonly string _replyQueueName;
         private readonly ConcurrentDictionary<string, TaskCompletionSource<CSharpFunctionalExtensions.Result<ResponseType>>> _callbackMapper = new();
 
-        public RpcClient(IModel channel, string rpcQueueName)
+        public RpcClient(IModel channel, string rpcQueueName, string rpcReceivingQueueName = "")
         {
             _rpcQueueName = rpcQueueName;
             _channel = channel;
-            _replyQueueName = _channel.QueueDeclare().QueueName;
+            _replyQueueName = _channel.QueueDeclare(rpcReceivingQueueName).QueueName;
             var consumer = new EventingBasicConsumer(_channel);
             consumer.Received += (model, ea) =>
             {

@@ -17,6 +17,7 @@ namespace MicroMarket.Services.Basket.Services
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly RabbitMQ.Client.IModel _model;
         private readonly EventingBasicConsumer _consumer;
+        public RpcClient<AddItemToBasket, ItemInformationResponse> ItemAddRpcClient { get; init; }
 
         public BasketMessagingService(IServiceScopeFactory serviceScopeFactory, IMessageBusService messageBusService)
         {
@@ -24,6 +25,12 @@ namespace MicroMarket.Services.Basket.Services
             _model = messageBusService.CreateModel();
             _consumer = new EventingBasicConsumer(_model);
             _consumer.Received += ProductUpdateEventHandler;
+
+            ItemAddRpcClient = new RpcClient<AddItemToBasket, ItemInformationResponse>(
+                _model,
+                "catalog.item-add.rpc",
+                "basket.item-add-rpc"
+            );
 
             _model.ExchangeDeclare("catalog.messages.exchange", ExchangeType.Direct, true, false, null);
             _model.QueueDeclare("basket.product-update.queue", true, false, false, null);
