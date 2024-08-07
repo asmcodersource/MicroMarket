@@ -73,14 +73,13 @@ namespace MicroMarket.Services.Basket.Services
             return Result.Success<Item>(item);
         }
 
-        public async Task<CSharpFunctionalExtensions.Result<ICollection<Item>>> GetItems(Guid userId, bool onlyOwnerAllowed = true)
+        public async Task<CSharpFunctionalExtensions.Result<IQueryable<Item>>> GetItems(Guid userId, bool onlyOwnerAllowed = true)
         {
-            var items = await _dbContext.Items
+            var items = _dbContext.Items
                 .Where(i => i.CustomerId == userId)
                 .Include(i => i.Product)
-                .AsNoTracking()
-                .ToListAsync();
-            return Result.Success<ICollection<Item>>(items);
+                .AsNoTracking();
+            return Result.Success<IQueryable<Item>>(items);
         }
 
         public async Task<Result> RemoveItem(Guid userId, Guid itemId, bool onlyOwnerAllowed = true)

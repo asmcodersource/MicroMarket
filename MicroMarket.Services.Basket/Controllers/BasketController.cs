@@ -2,6 +2,8 @@
 using MicroMarket.Services.Basket.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MicroMarket.Services.SharedCore.Pagination;
+using MicroMarket.Services.Basket.Models;
 
 namespace MicroMarket.Services.Basket.Controllers
 {
@@ -18,23 +20,43 @@ namespace MicroMarket.Services.Basket.Controllers
 
         [HttpGet("{userId}/items")]
         [Authorize(Roles = "ADMIN,MANAGER")]
-        public async Task<IActionResult> GetItems(Guid userId)
+        public async Task<IActionResult> GetItems(Guid userId, [FromQuery] int? page, [FromQuery] int? itemsPerPage)
         {
+            if ( (page is not null || itemsPerPage is not null) && !(page is not null && itemsPerPage is not null) )
+                return BadRequest("When using pagination, both parameters must be specified (page number, number of elements on the page).");
             var itemsGetResult = await _basketService.GetItems(userId);
             if (itemsGetResult.IsFailure)
                 return BadRequest(itemsGetResult.Error);
-            return Ok(itemsGetResult.Value.Select(i => new BasketItemGetDto(i)).ToList());
+            var itemsDtoQuery = itemsGetResult.Value.Select(i => new BasketItemGetDto(i));
+            if (page is null)
+            {
+                page = 0;
+                itemsPerPage = int.MaxValue;
+            }
+            var paginatedItems = await Pagination<BasketItemGetDto>.Paginate(itemsDtoQuery, page!.Value, itemsPerPage!.Value);
+            if (paginatedItems.IsFailure)
+                return BadRequest(paginatedItems.Error);
+            return Ok(paginatedItems);
         }
 
         [HttpGet("my/items")]
         [Authorize(Roles = "CUSTOMER")]
-        public async Task<IActionResult> GetMyItems()
+        public async Task<IActionResult> GetMyItems([FromQuery] int? page, [FromQuery] int? itemsPerPage)
         {
             var userId = Guid.Parse(User.Claims.First(c => c.Type == "Id").Value);
             var itemsGetResult = await _basketService.GetItems(userId);
             if (itemsGetResult.IsFailure)
                 return BadRequest(itemsGetResult.Error);
-            return Ok(itemsGetResult.Value.Select(i => new BasketItemGetDto(i)).ToList());
+            var itemsDtoQuery = itemsGetResult.Value.Select(i => new BasketItemGetDto(i));
+            if (page is null)
+            {
+                page = 0;
+                itemsPerPage = int.MaxValue;
+            }
+            var paginatedItems = await Pagination<BasketItemGetDto>.Paginate(itemsDtoQuery, page!.Value, itemsPerPage!.Value);
+            if (paginatedItems.IsFailure)
+                return BadRequest(paginatedItems.Error);
+            return Ok(paginatedItems);
         }
 
         [HttpPost("my/items/add-product/{productId}")]

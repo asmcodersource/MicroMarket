@@ -10,7 +10,7 @@ namespace MicroMarket.Services.Catalog.Interfaces
         public Task<Result<ICollection<Category>>> GetRootCategories();
         public Task<Result<Category>> GetCategory(Guid categoryId);
         public Task<Result<ICollection<Category>>> GetChildCategories(Guid categoryId);
-        public Task<Result<(Category, ICollection<Product>)>> GetCategoryProducts(Guid categoryId);
+        public Task<Result<(Category, IQueryable<Product>)>> GetCategoryProducts(Guid categoryId);
         public Task<Result<Category>> CreateCategory(CategoryCreateRequestDto categoryCreateRequestDto);
         public Task<Result<Category>> UpdateCategory(CategoryUpdateRequestDto categoryUpdateRequestDto);
 

@@ -3,6 +3,7 @@ using MicroMarket.Services.Catalog.Interfaces;
 using MicroMarket.Services.Catalog.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MicroMarket.Services.SharedCore.Pagination;
 
 namespace MicroMarket.Services.Catalog.Controllers
 {
@@ -54,9 +55,11 @@ namespace MicroMarket.Services.Catalog.Controllers
         }
 
         [AllowAnonymous, HttpGet("{categoryId}/products")]
-        [ProducesResponseType(typeof((CategoryGetResponseDto, IEnumerable<ProductGetResponseDto>)), 200)]
-        public async Task<IActionResult> GetCategoryProducts(Guid categoryId)
+        [ProducesResponseType(typeof((CategoryGetResponseDto, Pagination<ProductGetResponseDto>.PaginatedList)), 200)]
+        public async Task<IActionResult> GetCategoryProducts(Guid categoryId, [FromQuery] int? page, [FromQuery] int? itemsPerPage)
         {
+            if ((page is not null || itemsPerPage is not null) && !(page is not null && itemsPerPage is not null))
+                return BadRequest("When using pagination, both parameters must be specified (page number, number of elements on the page).");
             if (!ModelState.IsValid)
                 return BadRequest(ModelState.ToList());
             var getCategoryProductsResult = await _categoriesService.GetCategoryProducts(categoryId);
@@ -65,10 +68,18 @@ namespace MicroMarket.Services.Catalog.Controllers
             var (category, products) = getCategoryProductsResult.Value;
             var categoryDto = new CategoryGetResponseDto(category);
             var productsDto = products.Select(p => new ProductGetResponseDto(p));
+            if( page is null)
+            {
+                page = 0;
+                itemsPerPage = int.MaxValue;
+            }
+            var paginatedProducts = await Pagination<ProductGetResponseDto>.Paginate(productsDto, page!.Value, itemsPerPage!.Value);
+            if (paginatedProducts.IsFailure)
+                return BadRequest(paginatedProducts.Error);
             return Ok(new
             {
                 category = categoryDto,
-                products = productsDto
+                products = paginatedProducts.Value
             });
         }
 

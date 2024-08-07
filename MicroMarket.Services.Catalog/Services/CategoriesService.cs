@@ -45,17 +45,22 @@ namespace MicroMarket.Services.Catalog.Services
             return Result.Success(category);
         }
 
-        public async Task<Result<(Category, ICollection<Product>)>> GetCategoryProducts(Guid categoryId)
+        public async Task<Result<(Category, IQueryable<Product>)>> GetCategoryProducts(Guid categoryId)
         {
             var category = await _dbContext.Categories
                 .Where(c => !c.IsDeleted && c.IsActive)
-                .Include(c => c.Products)
                 .AsNoTracking()
                 .SingleOrDefaultAsync(c => c.Id == categoryId);
             if (category is null)
-                return Result.Failure<(Category, ICollection<Product>)>($"Category {categoryId} is not exist");
-
-            return Result.Success((category, category.Products));
+                return Result.Failure<(Category, IQueryable<Product>)>($"Category {categoryId} is not exist");
+            
+            var productsQuery = _dbContext.Categories
+                .Where(c => c.Id == categoryId && !c.IsDeleted && c.IsActive)
+                .Include(c => c.Products)
+                .AsNoTracking()
+                .SelectMany(c => c.Products)
+                .Where(p => p.IsActive && !p.IsDeleted); // Если вам нужно фильтровать продукты
+            return Result.Success((category, productsQuery));
         }
 
         public async Task<Result<ICollection<Category>>> GetRootCategories()
