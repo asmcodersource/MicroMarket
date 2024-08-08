@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MicroMarket.Services.Catalog.Migrations
 {
     [DbContext(typeof(CatalogDbContext))]
-    [Migration("20240804142751_Initial")]
+    [Migration("20240808202027_Initial")]
     partial class Initial
     {
         /// <inheritdoc />

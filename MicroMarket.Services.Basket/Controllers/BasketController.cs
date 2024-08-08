@@ -36,7 +36,7 @@ namespace MicroMarket.Services.Basket.Controllers
             var paginatedItems = await Pagination<BasketItemGetDto>.Paginate(itemsDtoQuery, page!.Value, itemsPerPage!.Value);
             if (paginatedItems.IsFailure)
                 return BadRequest(paginatedItems.Error);
-            return Ok(paginatedItems);
+            return Ok(paginatedItems.Value);
         }
 
         [HttpGet("my/items")]
@@ -56,7 +56,7 @@ namespace MicroMarket.Services.Basket.Controllers
             var paginatedItems = await Pagination<BasketItemGetDto>.Paginate(itemsDtoQuery, page!.Value, itemsPerPage!.Value);
             if (paginatedItems.IsFailure)
                 return BadRequest(paginatedItems.Error);
-            return Ok(paginatedItems);
+            return Ok(paginatedItems.Value);
         }
 
         [HttpPost("my/items/add-product/{productId}")]
@@ -108,6 +108,19 @@ namespace MicroMarket.Services.Basket.Controllers
             if (itemsRemoveResult.IsFailure)
                 return BadRequest(itemsRemoveResult.Error);
             return Ok();
+        }
+
+        [HttpPost("create-order")]
+        [Authorize(Roles = "CUSTOMER")]
+        public async Task<IActionResult> CreateOrder(ICollection<Guid> itemsInOrder)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState.ToList());
+            var userId = Guid.Parse(User.Claims.First(c => c.Type == "Id").Value);
+            var orderCreateResult = await _basketService.CreateOrder(userId, itemsInOrder);
+            if (orderCreateResult.IsFailure)
+                return BadRequest(orderCreateResult.Error);
+            return Ok(orderCreateResult.Value);
         }
     }
 }

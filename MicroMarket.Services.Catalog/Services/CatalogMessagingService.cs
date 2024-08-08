@@ -4,25 +4,81 @@ using MicroMarket.Services.SharedCore.MessageBus.Services;
 using MicroMarket.Services.SharedCore.RabbitMqRpc;
 using Microsoft.EntityFrameworkCore;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 
 namespace MicroMarket.Services.Catalog.Services
 {
     public class CatalogMessagingService
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
-        private readonly RpcServer<AddItemToBasket, ItemInformationResponse> _rpcServer;
+        private readonly RpcServer<AddItemToBasket, ItemInformationResponse> _bascketItemAddRpcServer;
+        private readonly RpcServer<ClaimOrderItems, ClaimedItemsResponse> _itemsClaimRpcServer;
+        private readonly EventingBasicConsumer _consumer;
         public IModel Model { get; init; }
 
         public CatalogMessagingService(IServiceScopeFactory serviceScopeFactory, IMessageBusService messageBusService)
         {
             Model = messageBusService.CreateModel();
             _serviceScopeFactory = serviceScopeFactory;
-            _rpcServer = new RpcServer<AddItemToBasket, ItemInformationResponse>(
+            _bascketItemAddRpcServer = new RpcServer<AddItemToBasket, ItemInformationResponse>(
                 Model,
                 "catalog.item-add.rpc",
                 HandleBasketItemAdd
             );
+            _itemsClaimRpcServer = new RpcServer<ClaimOrderItems, ClaimedItemsResponse>(
+                Model,
+                "catalog.items-claim.rpc",
+                HandleClaimItems
+            );
+            _consumer = new EventingBasicConsumer(Model);
+            _consumer.Received += HandleItemReturn;
             Model.ExchangeDeclare("catalog.messages.exchange", ExchangeType.Direct, true, false, null);
+            Model.QueueDeclare("catalog.return-items.queue", true, false, false, null);
+            Model.QueueBind("catalog.return-items.queue", "catalog.messages.exchange", "return-items", null);
+            Model.BasicConsume("catalog.return-items.queue", false, _consumer);
+        }
+
+        private SharedCore.RabbitMqRpc.Result<ClaimedItemsResponse> HandleClaimItems(ClaimOrderItems claimOrderItems)
+        {
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
+                var transaction = dbContext.Database.BeginTransaction();
+                try
+                {
+                    var response = new ClaimedItemsResponse();
+                    foreach (var item in claimOrderItems.ItemsToClaims)
+                    {
+                        var product = dbContext.Products
+                            .Where(p => !p.IsDeleted && p.IsActive)
+                            .SingleOrDefault(p => p.Id == item.ProductId);
+                        if (product is null)
+                            return Result<ClaimedItemsResponse>.Failure($"Product {item.ProductId} is dont exist or not active");
+                        if( (product.StockQuantity - item.ProductQuantity) < 0 )
+                            return Result<ClaimedItemsResponse>.Failure($"Not enought stock quantity of product {item.ProductId}");
+                        product.StockQuantity = product.StockQuantity - item.ProductQuantity;
+                        dbContext.Update(product);
+                        response.ClaimedItems.Add(
+                            new ClaimedItemsResponse.ClaimedItem()
+                            {
+                                ProductId = item.ProductId,
+                                ProductName = product.Name,
+                                ProductDescription = product.Description,
+                                ProductPrice = product.Price,
+                                ProductQuantity = item.ProductQuantity,
+                            }
+                        );
+                    }
+                    dbContext.SaveChanges();
+                    transaction.Commit();
+                    return SharedCore.RabbitMqRpc.Result<ClaimedItemsResponse>.Success(response);
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    return SharedCore.RabbitMqRpc.Result<ClaimedItemsResponse>.Failure(ex.Message);
+                }
+            }
         }
 
         private SharedCore.RabbitMqRpc.Result<ItemInformationResponse> HandleBasketItemAdd(AddItemToBasket addItemToBasket)
@@ -54,6 +110,24 @@ namespace MicroMarket.Services.Catalog.Services
                 {
                     transaction.Rollback();
                     return SharedCore.RabbitMqRpc.Result<ItemInformationResponse>.Failure(ex.Message);
+                }
+            }
+        }
+
+        private void HandleItemReturn(IModel model, BasicDeliverEventArgs basicDeliverEventArgs)
+        {
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
+                var transaction = dbContext.Database.BeginTransaction();
+                try
+                {
+                    var product = dbContext.Products.SingleOrDefault(p => p.Id );
+                    model.BasicAck(basicDeliverEventArgs.DeliveryTag, false);
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
                 }
             }
         }

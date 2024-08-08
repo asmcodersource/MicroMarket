@@ -12,11 +12,13 @@ namespace MicroMarket.Services.Basket.Services
     {
         private readonly BasketDbContext _dbContext;
         private readonly RpcClient<AddItemToBasket, ItemInformationResponse> _itemAddRpcClient;
+        private readonly RpcClient<ClaimOrderItems, ClaimedItemsResponse> _claimItemsRpcClient;
 
         public BasketService(BasketDbContext basketDbContext, BasketMessagingService basketMessagingService)
         {
             _dbContext = basketDbContext;
             _itemAddRpcClient = basketMessagingService.ItemAddRpcClient;
+            _claimItemsRpcClient = basketMessagingService.ClaimItemsRpcClient;
         }
 
         public async Task<CSharpFunctionalExtensions.Result<Item>> AddItem(Guid userId, Guid productId, int quantity, bool onlyOwnerAllowed = true)
@@ -107,6 +109,28 @@ namespace MicroMarket.Services.Basket.Services
             itemToUpdate.Quantity = quantity;
             await _dbContext.SaveChangesAsync();
             return Result.Success<Item>(itemToUpdate);
+        }
+
+        public async Task<CSharpFunctionalExtensions.Result<Guid>> CreateOrder(Guid userId, ICollection<Guid> itemsInOrder)
+        {
+            var userItemsQuery = await _dbContext.Items
+                .Where(i => i.CustomerId == userId && itemsInOrder.Contains(i.Id))
+                .Include(i => i.Product)
+                .ToListAsync();
+            if( userItemsQuery.Count != itemsInOrder.Count )
+                return Result.Failure<Guid>($"Not all basket objects exist");
+            
+            var request = new ClaimOrderItems();
+            request.ItemsToClaims = userItemsQuery.Select(i => new ClaimOrderItems.ItemToClaim()
+            {
+                ProductId = i.Product.CatalogProductId,
+                ProductQuantity = i.Quantity,
+            }).ToList();
+            var response = await _claimItemsRpcClient.CallAsync(request);
+            if( response.IsFailure )
+                return Result.Failure<Guid>($"Error happend in catalog service: {response.Error}");
+
+            return Guid.NewGuid();
         }
     }
 }

@@ -15,6 +15,8 @@ namespace MicroMarket.Services.Basket.Services
         private readonly RabbitMQ.Client.IModel _model;
         private readonly EventingBasicConsumer _consumer;
         public RpcClient<AddItemToBasket, ItemInformationResponse> ItemAddRpcClient { get; init; }
+        public RpcClient<ClaimOrderItems, ClaimedItemsResponse> ClaimItemsRpcClient { get; init; }
+
 
         public BasketMessagingService(IServiceScopeFactory serviceScopeFactory, IMessageBusService messageBusService)
         {
@@ -27,6 +29,12 @@ namespace MicroMarket.Services.Basket.Services
                 _model,
                 "catalog.item-add.rpc",
                 "basket.item-add-rpc"
+            );
+
+            ClaimItemsRpcClient = new RpcClient<ClaimOrderItems, ClaimedItemsResponse>(
+                _model,
+                "catalog.items-claim.rpc",
+                "basket.items-claim-rpc"
             );
 
             _model.ExchangeDeclare("catalog.messages.exchange", ExchangeType.Direct, true, false, null);
