@@ -9,24 +9,24 @@ namespace MicroMarket.Services.Ordering.Services
     {
         private readonly IModel _model;
         private readonly IServiceScopeFactory _serviceScopeFactory;
-        private readonly RpcServer<CreateOrder, CreatedOrderResponse> _orderCreatingRpcServer;
+        private readonly RpcServer<CreateDraftOrder, CreatedDraftOrderResponse> _orderCreatingRpcServer;
 
         public OrderingMessagingService(IServiceScopeFactory serviceScopeFactory, IMessageBusService messageBusService) 
         {
             _model = messageBusService.CreateModel();
             _serviceScopeFactory = serviceScopeFactory;
 
-            _orderCreatingRpcServer = new RpcServer<CreateOrder, CreatedOrderResponse>(
+            _orderCreatingRpcServer = new RpcServer<CreateDraftOrder, CreatedDraftOrderResponse>(
                 _model,
-                "ordering.create-order.rpc",
-                CreateOrderHandler
+                "ordering.create-draft-order.rpc",
+                CreateDraftOrderHandler
             );
                 
         }
 
-        private Result<CreatedOrderResponse> CreateOrderHandler(CreateOrder createOrder) 
+        private Result<CreatedDraftOrderResponse> CreateDraftOrderHandler(CreateDraftOrder createOrder) 
         {
-            throw new NotImplementedException();
+            return Result<CreatedDraftOrderResponse>.Failure("CreateDraftOrderHandler not implemented");
         }
     }
 }

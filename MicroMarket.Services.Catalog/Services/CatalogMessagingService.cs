@@ -5,6 +5,8 @@ using MicroMarket.Services.SharedCore.RabbitMqRpc;
 using Microsoft.EntityFrameworkCore;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using System.Text;
+using System.Text.Json;
 
 namespace MicroMarket.Services.Catalog.Services
 {
@@ -53,9 +55,9 @@ namespace MicroMarket.Services.Catalog.Services
                             .Where(p => !p.IsDeleted && p.IsActive)
                             .SingleOrDefault(p => p.Id == item.ProductId);
                         if (product is null)
-                            return Result<ClaimedItemsResponse>.Failure($"Product {item.ProductId} is dont exist or not active");
+                            throw new InvalidOperationException($"Product {item.ProductId} is dont exist or not active");
                         if( (product.StockQuantity - item.ProductQuantity) < 0 )
-                            return Result<ClaimedItemsResponse>.Failure($"Not enought stock quantity of product {item.ProductId}");
+                            throw new InvalidOperationException($"Not enought stock quantity of product {item.ProductId}");
                         product.StockQuantity = product.StockQuantity - item.ProductQuantity;
                         dbContext.Update(product);
                         response.ClaimedItems.Add(
@@ -93,7 +95,7 @@ namespace MicroMarket.Services.Catalog.Services
                         .AsNoTracking()
                         .SingleOrDefault(p => p.Id == addItemToBasket.ItemProductId);
                     if (product is null)
-                        return SharedCore.RabbitMqRpc.Result<ItemInformationResponse>.Failure("Product doesn't exist");
+                        throw new InvalidOperationException("Product doesn't exist");
                     var response = new ItemInformationResponse()
                     {
                         ItemProductId = product.Id,
@@ -114,16 +116,29 @@ namespace MicroMarket.Services.Catalog.Services
             }
         }
 
-        private void HandleItemReturn(IModel model, BasicDeliverEventArgs basicDeliverEventArgs)
+        private void HandleItemReturn(object? model, BasicDeliverEventArgs basicDeliverEventArgs)
         {
+            var json = Encoding.UTF8.GetString(basicDeliverEventArgs.Body.ToArray());
+            var returnItems = JsonSerializer.Deserialize<ReturnItems>(json);
+            if (returnItems is null)
+                return;
+
             using (var scope = _serviceScopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
                 var transaction = dbContext.Database.BeginTransaction();
                 try
                 {
-                    var product = dbContext.Products.SingleOrDefault(p => p.Id );
-                    model.BasicAck(basicDeliverEventArgs.DeliveryTag, false);
+                    foreach (var itemToReturn in returnItems.ItemsToReturn)
+                    {
+                        var product = dbContext.Products.SingleOrDefault(p => p.Id == itemToReturn.ProductId);
+                        if (product is null)
+                            continue;
+                        product.StockQuantity += itemToReturn.ProductQuantity;
+                    }
+                    dbContext.SaveChanges();
+                    transaction.Commit();
+                    Model.BasicAck(basicDeliverEventArgs.DeliveryTag, false);
                 }
                 catch (Exception ex)
                 {

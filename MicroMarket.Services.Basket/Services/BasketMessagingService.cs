@@ -12,35 +12,43 @@ namespace MicroMarket.Services.Basket.Services
     public class BasketMessagingService
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
-        private readonly RabbitMQ.Client.IModel _model;
         private readonly EventingBasicConsumer _consumer;
+
+        public RabbitMQ.Client.IModel Model { get; init; }
         public RpcClient<AddItemToBasket, ItemInformationResponse> ItemAddRpcClient { get; init; }
         public RpcClient<ClaimOrderItems, ClaimedItemsResponse> ClaimItemsRpcClient { get; init; }
+        public RpcClient<CreateDraftOrder, CreatedDraftOrderResponse> CreateDraftOrderRpcClient { get; init; }
 
 
         public BasketMessagingService(IServiceScopeFactory serviceScopeFactory, IMessageBusService messageBusService)
         {
             _serviceScopeFactory = serviceScopeFactory;
-            _model = messageBusService.CreateModel();
-            _consumer = new EventingBasicConsumer(_model);
+            Model = messageBusService.CreateModel();
+            _consumer = new EventingBasicConsumer(Model);
             _consumer.Received += ProductUpdateEventHandler;
 
             ItemAddRpcClient = new RpcClient<AddItemToBasket, ItemInformationResponse>(
-                _model,
+                Model,
                 "catalog.item-add.rpc",
-                "basket.item-add-rpc"
+                "basket.item-add.rpc"
             );
 
             ClaimItemsRpcClient = new RpcClient<ClaimOrderItems, ClaimedItemsResponse>(
-                _model,
+                Model,
                 "catalog.items-claim.rpc",
-                "basket.items-claim-rpc"
+                "basket.items-claim.rpc"
             );
 
-            _model.ExchangeDeclare("catalog.messages.exchange", ExchangeType.Direct, true, false, null);
-            _model.QueueDeclare("basket.product-update.queue", true, false, false, null);
-            _model.QueueBind("basket.product-update.queue", "catalog.messages.exchange", "product-update", null);
-            _model.BasicConsume("basket.product-update.queue", true, _consumer);
+            CreateDraftOrderRpcClient = new RpcClient<CreateDraftOrder, CreatedDraftOrderResponse>(
+                Model,
+                "ordering.create-draft-order.rpc",
+                "basket.create-draft-order.rpc"
+            );
+
+            Model.ExchangeDeclare("catalog.messages.exchange", ExchangeType.Direct, true, false, null);
+            Model.QueueDeclare("basket.product-update.queue", true, false, false, null);
+            Model.QueueBind("basket.product-update.queue", "catalog.messages.exchange", "product-update", null);
+            Model.BasicConsume("basket.product-update.queue", true, _consumer);
         }
 
         private void ProductUpdateEventHandler(object? sender, BasicDeliverEventArgs basicDeliverEventArgs)

@@ -71,7 +71,7 @@ namespace MicroMarket.Services.Catalog.Services
             {
                 var product = await _dbContext.Products.SingleOrDefaultAsync(p => p.Id == productId && !p.IsDeleted);
                 if (product is null)
-                    return Result.Failure<Product>($"Product {productId} is not exists");
+                    throw new InvalidOperationException($"Product {productId} is not exists");
 
                 product.StockQuantity = product.StockQuantity + quantity;
                 _dbContext.Products.Update(product);
@@ -104,7 +104,7 @@ namespace MicroMarket.Services.Catalog.Services
             {
                 var product = await _dbContext.Products.SingleOrDefaultAsync(p => p.Id == productUpdateRequestDto.Id && !p.IsDeleted);
                 if (product is null)
-                    return Result.Failure<Product>($"Product {productUpdateRequestDto.Id} is not exists");
+                    throw new InvalidOperationException($"Product {productUpdateRequestDto.Id} is not exists");
 
                 product.Name = productUpdateRequestDto.Name;
                 product.Description = productUpdateRequestDto.Description;
@@ -137,7 +137,7 @@ namespace MicroMarket.Services.Catalog.Services
             {
                 var product = await _dbContext.Products.SingleOrDefaultAsync(p => p.Id == productId && !p.IsDeleted);
                 if (product is null)
-                    return Result.Failure<Product>($"Product {productId} is not exists");
+                    throw new InvalidOperationException($"Product {productId} is not exists");
 
                 product.StockQuantity = quantity;
                 _dbContext.Products.Update(product);

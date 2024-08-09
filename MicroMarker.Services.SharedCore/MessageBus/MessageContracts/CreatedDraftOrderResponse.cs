@@ -6,8 +6,7 @@ using System.Threading.Tasks;
 
 namespace MicroMarket.Services.SharedCore.MessageBus.MessageContracts
 {
-    public class CreateOrder
+    public class CreatedDraftOrderResponse
     {
-
     }
 }

@@ -5,20 +5,27 @@ using MicroMarket.Services.Basket.Models;
 using MicroMarket.Services.SharedCore.MessageBus.MessageContracts;
 using MicroMarket.Services.SharedCore.RabbitMqRpc;
 using Microsoft.EntityFrameworkCore;
+using RabbitMQ.Client;
+using System.Text;
+using System.Text.Json;
 
 namespace MicroMarket.Services.Basket.Services
 {
     public class BasketService : IBasketService
     {
         private readonly BasketDbContext _dbContext;
+        private readonly IModel _model;
         private readonly RpcClient<AddItemToBasket, ItemInformationResponse> _itemAddRpcClient;
         private readonly RpcClient<ClaimOrderItems, ClaimedItemsResponse> _claimItemsRpcClient;
+        private readonly RpcClient<CreateDraftOrder, CreatedDraftOrderResponse> _createDraftOrderRpcClient;
 
         public BasketService(BasketDbContext basketDbContext, BasketMessagingService basketMessagingService)
         {
             _dbContext = basketDbContext;
+            _model = basketMessagingService.Model;
             _itemAddRpcClient = basketMessagingService.ItemAddRpcClient;
             _claimItemsRpcClient = basketMessagingService.ClaimItemsRpcClient;
+            _createDraftOrderRpcClient = basketMessagingService.CreateDraftOrderRpcClient;
         }
 
         public async Task<CSharpFunctionalExtensions.Result<Item>> AddItem(Guid userId, Guid productId, int quantity, bool onlyOwnerAllowed = true)
@@ -120,16 +127,46 @@ namespace MicroMarket.Services.Basket.Services
             if( userItemsQuery.Count != itemsInOrder.Count )
                 return Result.Failure<Guid>($"Not all basket objects exist");
             
-            var request = new ClaimOrderItems();
-            request.ItemsToClaims = userItemsQuery.Select(i => new ClaimOrderItems.ItemToClaim()
+            var claimRequest = new ClaimOrderItems();
+            claimRequest.ItemsToClaims = userItemsQuery.Select(i => new ClaimOrderItems.ItemToClaim()
             {
                 ProductId = i.Product.CatalogProductId,
                 ProductQuantity = i.Quantity,
             }).ToList();
-            var response = await _claimItemsRpcClient.CallAsync(request);
-            if( response.IsFailure )
-                return Result.Failure<Guid>($"Error happend in catalog service: {response.Error}");
+            var claimItemsResponse = await _claimItemsRpcClient.CallAsync(claimRequest);
+            if( claimItemsResponse.IsFailure )
+                return Result.Failure<Guid>($"Error happend in catalog service: {claimItemsResponse.Error}");
+            var createDraftOrderRequest = new CreateDraftOrder()
+            {
+                CustomerId = userId,
+                Items = claimItemsResponse.Value.ClaimedItems.Select(i =>
+                    new CreateDraftOrder.OrderItem()
+                    {
+                        ProductId = i.ProductId,
+                        ProductName = i.ProductName,
+                        ProductPrice = i.ProductPrice,
+                        ProductQuantity = i.ProductQuantity,
+                    }).ToList()
+            };
+            var createDraftOrderResponse = await _createDraftOrderRpcClient.CallAsync(createDraftOrderRequest);
+            if( createDraftOrderResponse.IsFailure)
+            {
+                var returnItems = new ReturnItems()
+                {
+                    ItemsToReturn = userItemsQuery.Select(i =>
+                        new ReturnItems.ItemToReturn()
+                        {
+                            ProductId = i.Product.CatalogProductId,
+                            ProductQuantity = i.Quantity
+                        }).ToList()
+                };
+                var json = JsonSerializer.Serialize(returnItems);
+                _model.BasicPublish("catalog.messages.exchange", "return-items", null, Encoding.UTF8.GetBytes(json));
+                return CSharpFunctionalExtensions.Result.Failure<Guid>($"Some error happend during draft order creating {createDraftOrderResponse.Error}");
+            } else
+            {
 
+            }
             return Guid.NewGuid();
         }
     }
