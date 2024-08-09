@@ -20,6 +20,7 @@ namespace MicroMarket.Services.Basket.Controllers
 
         [HttpGet("{userId}/items")]
         [Authorize(Roles = "ADMIN,MANAGER")]
+        [ProducesResponseType(typeof(Pagination<BasketItemGetDto>.PaginatedList), 200)]
         public async Task<IActionResult> GetItems(Guid userId, [FromQuery] int? page, [FromQuery] int? itemsPerPage)
         {
             if ( (page is not null || itemsPerPage is not null) && !(page is not null && itemsPerPage is not null) )
@@ -41,6 +42,7 @@ namespace MicroMarket.Services.Basket.Controllers
 
         [HttpGet("my/items")]
         [Authorize(Roles = "CUSTOMER")]
+        [ProducesResponseType(typeof(Pagination<BasketItemGetDto>.PaginatedList), 200)]
         public async Task<IActionResult> GetMyItems([FromQuery] int? page, [FromQuery] int? itemsPerPage)
         {
             var userId = Guid.Parse(User.Claims.First(c => c.Type == "Id").Value);
@@ -61,6 +63,7 @@ namespace MicroMarket.Services.Basket.Controllers
 
         [HttpPost("my/items/add-product/{productId}")]
         [Authorize(Roles = "CUSTOMER")]
+        [ProducesResponseType(typeof(Item), 200)]
         public async Task<IActionResult> AddMyItem(Guid productId, [FromBody] BasketUpdateQuantityRequestDto newQuantityDto)
         {
             if (!ModelState.IsValid)
@@ -74,6 +77,7 @@ namespace MicroMarket.Services.Basket.Controllers
 
         [HttpPost("{userId}/items/add-product/{productId}")]
         [Authorize(Roles = "ADMIN,MANAGER")]
+        [ProducesResponseType(typeof(Item), 200)]
         public async Task<IActionResult> AddItem(Guid userId, Guid productId, [FromBody] BasketUpdateQuantityRequestDto newQuantityDto)
         {
             if (!ModelState.IsValid)
@@ -86,6 +90,7 @@ namespace MicroMarket.Services.Basket.Controllers
 
         [HttpPut("{itemId}/update-quantity")]
         [Authorize(Roles = "CUSTOMER")]
+        [ProducesResponseType(typeof(Item), 200)]
         public async Task<IActionResult> UpdateQuantity(Guid itemId, [FromBody] BasketUpdateQuantityRequestDto newQuantityDto)
         {
             if (!ModelState.IsValid)
@@ -99,6 +104,7 @@ namespace MicroMarket.Services.Basket.Controllers
 
         [HttpDelete("{itemId}")]
         [Authorize(Roles = "CUSTOMER")]
+        [ProducesResponseType(200)]
         public async Task<IActionResult> RemoveItem(Guid itemId)
         {
             if (!ModelState.IsValid)
@@ -112,6 +118,7 @@ namespace MicroMarket.Services.Basket.Controllers
 
         [HttpPost("create-order")]
         [Authorize(Roles = "CUSTOMER")]
+        [ProducesResponseType(typeof(Guid), 200)]
         public async Task<IActionResult> CreateOrder(ICollection<Guid> itemsInOrder)
         {
             if (!ModelState.IsValid)

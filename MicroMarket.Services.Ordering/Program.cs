@@ -1,4 +1,5 @@
 using MicroMarket.Services.Ordering.DbContexts;
+using MicroMarket.Services.Ordering.Interfaces;
 using MicroMarket.Services.Ordering.Services;
 using MicroMarket.Services.SharedCore.Extensions;
 using MicroMarket.Services.SharedCore.MessageBus.Extensions;
@@ -12,6 +13,8 @@ if (!EF.IsDesignTime)
     builder.Services.AddDbContext<OrderingDbContext>();
     builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
     builder.Services.AddSingleton<OrderingMessagingService>();
+    builder.Services.AddScoped<IDraftOrdersService, DraftOrdersService>();
+    builder.Services.AddScoped<IOrdersService, OrdersService>();
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddConfiguredSwaggerGen("MicroMarket.Service.Ordering API");

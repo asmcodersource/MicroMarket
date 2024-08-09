@@ -120,15 +120,15 @@ namespace MicroMarket.Services.Basket.Services
 
         public async Task<CSharpFunctionalExtensions.Result<Guid>> CreateOrder(Guid userId, ICollection<Guid> itemsInOrder)
         {
-            var userItemsQuery = await _dbContext.Items
+            var userItems = await _dbContext.Items
                 .Where(i => i.CustomerId == userId && itemsInOrder.Contains(i.Id))
                 .Include(i => i.Product)
                 .ToListAsync();
-            if( userItemsQuery.Count != itemsInOrder.Count )
+            if( userItems.Count != itemsInOrder.Count )
                 return Result.Failure<Guid>($"Not all basket objects exist");
             
             var claimRequest = new ClaimOrderItems();
-            claimRequest.ItemsToClaims = userItemsQuery.Select(i => new ClaimOrderItems.ItemToClaim()
+            claimRequest.ItemsToClaims = userItems.Select(i => new ClaimOrderItems.ItemToClaim()
             {
                 ProductId = i.Product.CatalogProductId,
                 ProductQuantity = i.Quantity,
@@ -153,7 +153,7 @@ namespace MicroMarket.Services.Basket.Services
             {
                 var returnItems = new ReturnItems()
                 {
-                    ItemsToReturn = userItemsQuery.Select(i =>
+                    ItemsToReturn = userItems.Select(i =>
                         new ReturnItems.ItemToReturn()
                         {
                             ProductId = i.Product.CatalogProductId,
@@ -165,9 +165,10 @@ namespace MicroMarket.Services.Basket.Services
                 return CSharpFunctionalExtensions.Result.Failure<Guid>($"Some error happend during draft order creating {createDraftOrderResponse.Error}");
             } else
             {
-
+                _dbContext.RemoveRange(userItems);
+                await _dbContext.SaveChangesAsync();
+                return CSharpFunctionalExtensions.Result.Success<Guid>(createDraftOrderResponse.Value.CreatedDraftOrder);
             }
-            return Guid.NewGuid();
         }
     }
 }
