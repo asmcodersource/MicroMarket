@@ -4,6 +4,7 @@ using MicroMarket.Services.Catalog.Services;
 using MicroMarket.Services.SharedCore.Extensions;
 using MicroMarket.Services.SharedCore.MessageBus.Extensions;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 // Add services to the container.
 
@@ -16,7 +17,11 @@ if (!EF.IsDesignTime)
     builder.Services.AddScoped<ICategoriesService, CategoriesService>();
     builder.Services.AddScoped<IProductsService, ProductsService>();
     builder.Services.AddSingleton<CatalogMessagingService>();
-    builder.Services.AddControllers();
+    builder.Services.AddControllers().AddJsonOptions(opts =>
+    {
+        var enumConverter = new JsonStringEnumConverter();
+        opts.JsonSerializerOptions.Converters.Add(enumConverter);
+    });
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddConfiguredSwaggerGen("MicroMarket.Service.Catalog API");
     builder.Services.AddConfiguratedAuthentication(builder.Configuration);

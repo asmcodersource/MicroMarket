@@ -28,8 +28,10 @@ namespace MicroMarket.Services.Basket.Services
             _createDraftOrderRpcClient = basketMessagingService.CreateDraftOrderRpcClient;
         }
 
-        public async Task<CSharpFunctionalExtensions.Result<Item>> AddItem(Guid userId, Guid productId, int quantity, bool onlyOwnerAllowed = true)
+        public async Task<CSharpFunctionalExtensions.Result<Item>> AddItem(Guid initiatorUserId, Guid userId, Guid productId, int quantity, bool onlyOwnerAllowed = true)
         {
+            if (onlyOwnerAllowed && initiatorUserId != userId)
+                return Result.Failure<Item>($"User {initiatorUserId} haven't acces to the items of user {userId}");
             var request = new AddItemToBasket()
             {
                 ItemProductId = productId,
@@ -82,8 +84,10 @@ namespace MicroMarket.Services.Basket.Services
             return Result.Success<Item>(item);
         }
 
-        public async Task<CSharpFunctionalExtensions.Result<IQueryable<Item>>> GetItems(Guid userId, bool onlyOwnerAllowed = true)
+        public async Task<CSharpFunctionalExtensions.Result<IQueryable<Item>>> GetItems(Guid initiatorUserId, Guid userId, bool onlyOwnerAllowed = true)
         {
+            if (onlyOwnerAllowed && initiatorUserId != userId)
+                return Result.Failure<IQueryable<Item>>($"User {initiatorUserId} haven't acces to the items of user {userId}");
             var items = _dbContext.Items
                 .Where(i => i.CustomerId == userId)
                 .Include(i => i.Product)
@@ -91,19 +95,19 @@ namespace MicroMarket.Services.Basket.Services
             return Result.Success<IQueryable<Item>>(items);
         }
 
-        public async Task<Result> RemoveItem(Guid userId, Guid itemId, bool onlyOwnerAllowed = true)
+        public async Task<Result> RemoveItem(Guid initiatorUserId, Guid itemId, bool onlyOwnerAllowed = true)
         {
             var itemToRemove = await _dbContext.Items.Where(i => i.Id == itemId).FirstOrDefaultAsync();
             if (itemToRemove is null)
                 return Result.Failure<Result>($"Item {itemId} dosn't exist");
-            if (itemToRemove.CustomerId != userId && onlyOwnerAllowed)
-                return Result.Failure<Result>($"Item {itemId} is owned by other user");
+            if (onlyOwnerAllowed && itemToRemove.CustomerId != initiatorUserId)
+                return Result.Failure<IQueryable<Item>>($"User {initiatorUserId} haven't acces to the item {itemId}");
             _dbContext.Items.Remove(itemToRemove);
             await _dbContext.SaveChangesAsync();
             return Result.Success();
         }
 
-        public async Task<CSharpFunctionalExtensions.Result<Item>> UpdateQuantity(Guid userId, Guid itemId, int quantity, bool onlyOwnerAllowed = true)
+        public async Task<CSharpFunctionalExtensions.Result<Item>> UpdateQuantity(Guid initiatorUserId, Guid itemId, int quantity, bool onlyOwnerAllowed = true)
         {
             var itemToUpdate = await _dbContext.Items
                 .Where(i => i.Id == itemId)
@@ -111,22 +115,25 @@ namespace MicroMarket.Services.Basket.Services
                 .FirstOrDefaultAsync();
             if (itemToUpdate is null)
                 return Result.Failure<Item>($"Item {itemId} dosn't exist");
-            if (itemToUpdate.CustomerId != userId && onlyOwnerAllowed)
+            if (onlyOwnerAllowed && itemToUpdate.CustomerId != initiatorUserId)
                 return Result.Failure<Item>($"Item {itemId} is owned by other user");
             itemToUpdate.Quantity = quantity;
             await _dbContext.SaveChangesAsync();
             return Result.Success<Item>(itemToUpdate);
         }
 
-        public async Task<CSharpFunctionalExtensions.Result<Guid>> CreateOrder(Guid userId, ICollection<Guid> itemsInOrder)
+        public async Task<CSharpFunctionalExtensions.Result<Guid>> CreateOrder(Guid initiatorUserId, Guid userId, ICollection<Guid> itemsInOrder, bool onlyOwnerAllowed = true)
         {
+            if (onlyOwnerAllowed && initiatorUserId != userId)
+                return Result.Failure<Guid>($"User {initiatorUserId} haven't acces to the items of user {userId}");
+
             var userItems = await _dbContext.Items
                 .Where(i => i.CustomerId == userId && itemsInOrder.Contains(i.Id))
                 .Include(i => i.Product)
                 .ToListAsync();
-            if( userItems.Count != itemsInOrder.Count )
+            if (userItems.Count != itemsInOrder.Count)
                 return Result.Failure<Guid>($"Not all basket objects exist");
-            
+
             var claimRequest = new ClaimOrderItems();
             claimRequest.ItemsToClaims = userItems.Select(i => new ClaimOrderItems.ItemToClaim()
             {
@@ -134,7 +141,7 @@ namespace MicroMarket.Services.Basket.Services
                 ProductQuantity = i.Quantity,
             }).ToList();
             var claimItemsResponse = await _claimItemsRpcClient.CallAsync(claimRequest);
-            if( claimItemsResponse.IsFailure )
+            if (claimItemsResponse.IsFailure)
                 return Result.Failure<Guid>($"Error happend in catalog service: {claimItemsResponse.Error}");
             var createDraftOrderRequest = new CreateDraftOrder()
             {
@@ -149,7 +156,7 @@ namespace MicroMarket.Services.Basket.Services
                     }).ToList()
             };
             var createDraftOrderResponse = await _createDraftOrderRpcClient.CallAsync(createDraftOrderRequest);
-            if( createDraftOrderResponse.IsFailure)
+            if (createDraftOrderResponse.IsFailure)
             {
                 var returnItems = new ReturnItems()
                 {
@@ -163,7 +170,8 @@ namespace MicroMarket.Services.Basket.Services
                 var json = JsonSerializer.Serialize(returnItems);
                 _model.BasicPublish("catalog.messages.exchange", "return-items", null, Encoding.UTF8.GetBytes(json));
                 return CSharpFunctionalExtensions.Result.Failure<Guid>($"Some error happend during draft order creating {createDraftOrderResponse.Error}");
-            } else
+            }
+            else
             {
                 _dbContext.RemoveRange(userItems);
                 await _dbContext.SaveChangesAsync();

@@ -1,5 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-using CSharpFunctionalExtensions;
+﻿using CSharpFunctionalExtensions;
+using Microsoft.EntityFrameworkCore;
 
 namespace MicroMarket.Services.SharedCore.Pagination
 {
@@ -7,7 +7,7 @@ namespace MicroMarket.Services.SharedCore.Pagination
     {
         public class PaginatedList
         {
-            public ICollection<T> Items { get; init; }
+            public ICollection<T> Items { get; init; } = new List<T>();
             public int ItemsCount { get; init; }
             public int ItemsOnPage { get; init; }
             public int PageNumber { get; init; }
@@ -17,7 +17,7 @@ namespace MicroMarket.Services.SharedCore.Pagination
 
         public static async Task<Result<PaginatedList>> Paginate(IQueryable<T> query, int page, int entriesPerPage)
         {
-            if ( page < 0 || entriesPerPage <= 0 )
+            if (page < 0 || entriesPerPage <= 0)
                 return Result.Failure<PaginatedList>("Page number and items per page must be positive value");
 
             var count = await query.CountAsync();

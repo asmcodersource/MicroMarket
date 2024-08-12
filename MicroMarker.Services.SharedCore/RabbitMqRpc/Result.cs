@@ -2,7 +2,7 @@
 {
     public class Result<ValueType>
     {
-        public ValueType Value { get; set; }
+        public ValueType Value { get; set; } = default(ValueType)!;
         public string? Error { get; set; }
         public bool IsSuccesful { get; set; }
         public bool IsFailure { get => !IsSuccesful; }

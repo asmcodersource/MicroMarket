@@ -1,34 +1,31 @@
-﻿using MicroMarket.Services.SharedCore.MessageBus.Services;
-using MicroMarket.Services.SharedCore.RabbitMqRpc;
+﻿using MicroMarket.Services.Ordering.Interfaces;
 using MicroMarket.Services.SharedCore.MessageBus.MessageContracts;
-using MicroMarket.Services.Ordering.DbContexts;
+using MicroMarket.Services.SharedCore.MessageBus.Services;
+using MicroMarket.Services.SharedCore.RabbitMqRpc;
 using RabbitMQ.Client;
-using MicroMarket.Services.Ordering.Models;
-using MicroMarket.Services.Ordering.Interfaces;
-using CSharpFunctionalExtensions;
 
 namespace MicroMarket.Services.Ordering.Services
 {
     public class OrderingMessagingService
     {
-        private readonly IModel _model;
+        public readonly IModel Model;
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly RpcServer<CreateDraftOrder, CreatedDraftOrderResponse> _orderCreatingRpcServer;
 
-        public OrderingMessagingService(IServiceScopeFactory serviceScopeFactory, IMessageBusService messageBusService) 
+        public OrderingMessagingService(IServiceScopeFactory serviceScopeFactory, IMessageBusService messageBusService)
         {
-            _model = messageBusService.CreateModel();
+            Model = messageBusService.CreateModel();
             _serviceScopeFactory = serviceScopeFactory;
 
             _orderCreatingRpcServer = new RpcServer<CreateDraftOrder, CreatedDraftOrderResponse>(
-                _model,
+                Model,
                 "ordering.create-draft-order.rpc",
                 CreateDraftOrderHandler
             );
-                
+
         }
 
-        private SharedCore.RabbitMqRpc.Result<CreatedDraftOrderResponse> CreateDraftOrderHandler(CreateDraftOrder createOrder) 
+        private SharedCore.RabbitMqRpc.Result<CreatedDraftOrderResponse> CreateDraftOrderHandler(CreateDraftOrder createOrder)
         {
             try
             {
@@ -36,7 +33,7 @@ namespace MicroMarket.Services.Ordering.Services
                 {
                     IDraftOrdersService draftOrdersService = scope.ServiceProvider.GetRequiredService<IDraftOrdersService>();
                     var draftOrderCreateResult = draftOrdersService.CreateDraftOrder(createOrder).Result;
-                    if( draftOrderCreateResult.IsFailure ) 
+                    if (draftOrderCreateResult.IsFailure)
                         return SharedCore.RabbitMqRpc.Result<CreatedDraftOrderResponse>.Failure(draftOrderCreateResult.Error);
                     var response = new CreatedDraftOrderResponse(draftOrderCreateResult.Value.Id);
                     return SharedCore.RabbitMqRpc.Result<CreatedDraftOrderResponse>.Success(response);

@@ -12,7 +12,7 @@ namespace MicroMarket.Services.Ordering.Controllers
     public class DraftOrdersController : ControllerBase
     {
         private readonly IDraftOrdersService _draftOrdersService;
-        
+
         public DraftOrdersController(IDraftOrdersService draftOrdersService)
         {
             _draftOrdersService = draftOrdersService;
@@ -24,7 +24,7 @@ namespace MicroMarket.Services.Ordering.Controllers
         public async Task<IActionResult> GetMyDraftOrders()
         {
             var userId = Guid.Parse(User.Claims.First(c => c.Type == "Id").Value);
-            var getUserDraftOrdersResult = await _draftOrdersService.GetDraftOrders(userId, userId, HasPrivilegedAccess(User));
+            var getUserDraftOrdersResult = await _draftOrdersService.GetDraftOrders(userId, userId, !HasPrivilegedAccess(User));
             if (getUserDraftOrdersResult.IsFailure)
                 return StatusCode(StatusCodes.Status500InternalServerError, getUserDraftOrdersResult.Error);
             return Ok(getUserDraftOrdersResult.Value);
@@ -35,10 +35,10 @@ namespace MicroMarket.Services.Ordering.Controllers
         [ProducesResponseType(typeof(DraftOrder), 200)]
         public async Task<IActionResult> GetDraftOrder(Guid draftOrderId)
         {
-            if( !ModelState.IsValid )
+            if (!ModelState.IsValid)
                 return BadRequest(ModelState.ToList());
             var userId = Guid.Parse(User.Claims.First(c => c.Type == "Id").Value);
-            var getDraftOrderResult = await _draftOrdersService.GetDraftOrder(userId, draftOrderId, HasPrivilegedAccess(User));
+            var getDraftOrderResult = await _draftOrdersService.GetDraftOrder(userId, draftOrderId, !HasPrivilegedAccess(User));
             if (getDraftOrderResult.IsFailure)
                 return StatusCode(StatusCodes.Status400BadRequest, getDraftOrderResult.Error);
             return Ok(getDraftOrderResult.Value);
@@ -52,7 +52,7 @@ namespace MicroMarket.Services.Ordering.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState.ToList());
             var userId = Guid.Parse(User.Claims.First(c => c.Type == "Id").Value);
-            var updateDraftOrderResult = await _draftOrdersService.UpdateDraftOrder(userId, draftOrderId, draftOrderUpdateDto, HasPrivilegedAccess(User));
+            var updateDraftOrderResult = await _draftOrdersService.UpdateDraftOrder(userId, draftOrderId, draftOrderUpdateDto, !HasPrivilegedAccess(User));
             if (updateDraftOrderResult.IsFailure)
                 return StatusCode(StatusCodes.Status400BadRequest, updateDraftOrderResult.Error);
             return Ok(updateDraftOrderResult.Value);
@@ -66,7 +66,7 @@ namespace MicroMarket.Services.Ordering.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState.ToList());
             var userId = Guid.Parse(User.Claims.First(c => c.Type == "Id").Value);
-            var deleteDraftOrderResult = await _draftOrdersService.DeleteDraftOrder(userId, draftOrderId, HasPrivilegedAccess(User));
+            var deleteDraftOrderResult = await _draftOrdersService.DeleteDraftOrder(userId, draftOrderId, !HasPrivilegedAccess(User));
             if (deleteDraftOrderResult.IsFailure)
                 return StatusCode(StatusCodes.Status400BadRequest, deleteDraftOrderResult.Error);
             return Ok();
@@ -80,7 +80,7 @@ namespace MicroMarket.Services.Ordering.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState.ToList());
             var userId = Guid.Parse(User.Claims.First(c => c.Type == "Id").Value);
-            var confirmDraftOrderResult = await _draftOrdersService.ConfirmDraftOrder(userId, draftOrderId, HasPrivilegedAccess(User));
+            var confirmDraftOrderResult = await _draftOrdersService.ConfirmDraftOrder(userId, draftOrderId, !HasPrivilegedAccess(User));
             if (confirmDraftOrderResult.IsFailure)
                 return StatusCode(StatusCodes.Status400BadRequest, confirmDraftOrderResult.Error);
             return Ok(confirmDraftOrderResult.Value);

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MicroMarket.Services.SharedCore.MessageBus.MessageContracts
+﻿namespace MicroMarket.Services.SharedCore.MessageBus.MessageContracts
 {
     public class ClaimOrderItems
     {

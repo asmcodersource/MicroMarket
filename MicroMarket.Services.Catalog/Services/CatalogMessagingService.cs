@@ -56,7 +56,7 @@ namespace MicroMarket.Services.Catalog.Services
                             .SingleOrDefault(p => p.Id == item.ProductId);
                         if (product is null)
                             throw new InvalidOperationException($"Product {item.ProductId} is dont exist or not active");
-                        if( (product.StockQuantity - item.ProductQuantity) < 0 )
+                        if ((product.StockQuantity - item.ProductQuantity) < 0)
                             throw new InvalidOperationException($"Not enought stock quantity of product {item.ProductId}");
                         product.StockQuantity = product.StockQuantity - item.ProductQuantity;
                         dbContext.Update(product);

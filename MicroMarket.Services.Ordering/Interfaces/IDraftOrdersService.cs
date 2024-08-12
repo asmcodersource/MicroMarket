@@ -1,7 +1,7 @@
-﻿using MicroMarket.Services.Ordering.Models;
-using CSharpFunctionalExtensions;
-using MicroMarket.Services.SharedCore.MessageBus.MessageContracts;
+﻿using CSharpFunctionalExtensions;
 using MicroMarket.Services.Ordering.Dtos;
+using MicroMarket.Services.Ordering.Models;
+using MicroMarket.Services.SharedCore.MessageBus.MessageContracts;
 
 namespace MicroMarket.Services.Ordering.Interfaces
 {

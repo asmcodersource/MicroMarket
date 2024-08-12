@@ -3,15 +3,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MicroMarket.Services.Ordering.DbContexts
 {
-    public class OrderingDbContext: DbContext
+    public class OrderingDbContext : DbContext
     {
         private readonly IConfiguration _configuration;
-        public DbSet<Item> Items { get; set; } 
+        public DbSet<Item> Items { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderState> OrderStates { get; set; }
         public DbSet<DraftOrder> DraftOrders { get; set; }
 
-        public OrderingDbContext(DbContextOptions<OrderingDbContext> options, IConfiguration configuration) : base(options) 
+        public OrderingDbContext(DbContextOptions<OrderingDbContext> options, IConfiguration configuration) : base(options)
         {
             _configuration = configuration;
         }

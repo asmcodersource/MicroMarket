@@ -7,6 +7,7 @@ using MicroMarket.Services.SharedCore.Extensions;
 using MicroMarket.Services.SharedCore.SharedRedis.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,7 +21,11 @@ if (!EF.IsDesignTime)
     builder.Services.AddScoped<IAuthService, AuthService>();
     builder.Services.AddScoped<IRolesService, RolesService>();
     builder.Services.AddScoped<IJwtService, JwtService>();
-    builder.Services.AddControllers();
+    builder.Services.AddControllers().AddJsonOptions(opts =>
+    {
+        var enumConverter = new JsonStringEnumConverter();
+        opts.JsonSerializerOptions.Converters.Add(enumConverter);
+    });
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddConfiguredSwaggerGen("MicroMarket.Service.Identity API");
     builder.Services.AddConfiguratedAuthentication(builder.Configuration);

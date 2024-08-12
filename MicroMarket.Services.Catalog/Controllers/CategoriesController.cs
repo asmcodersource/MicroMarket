@@ -1,9 +1,9 @@
 ﻿using MicroMarket.Services.Catalog.Dtos;
 using MicroMarket.Services.Catalog.Interfaces;
 using MicroMarket.Services.Catalog.Models;
+using MicroMarket.Services.SharedCore.Pagination;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MicroMarket.Services.SharedCore.Pagination;
 
 namespace MicroMarket.Services.Catalog.Controllers
 {
@@ -68,7 +68,7 @@ namespace MicroMarket.Services.Catalog.Controllers
             var (category, products) = getCategoryProductsResult.Value;
             var categoryDto = new CategoryGetResponseDto(category);
             var productsDto = products.Select(p => new ProductGetResponseDto(p));
-            if( page is null)
+            if (page is null)
             {
                 page = 0;
                 itemsPerPage = int.MaxValue;

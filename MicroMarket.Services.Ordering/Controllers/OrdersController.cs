@@ -5,7 +5,7 @@ namespace MicroMarket.Services.Ordering.Controllers
 {
     [ApiController]
     [Route("/api/ordering/[controller]")]
-    public class OrdersController: Controller
+    public class OrdersController : Controller
     {
         [HttpGet("my")]
         [Authorize(Roles = "CUSTOMER")]

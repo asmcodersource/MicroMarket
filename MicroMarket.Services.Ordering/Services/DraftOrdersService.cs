@@ -1,12 +1,13 @@
 ﻿using CSharpFunctionalExtensions;
 using MicroMarket.Services.Ordering.DbContexts;
+using MicroMarket.Services.Ordering.Dtos;
 using MicroMarket.Services.Ordering.Interfaces;
 using MicroMarket.Services.Ordering.Models;
 using MicroMarket.Services.SharedCore.MessageBus.MessageContracts;
 using Microsoft.EntityFrameworkCore;
-using MicroMarket.Services.Ordering.Dtos;
-using CSharpFunctionalExtensions;
+using RabbitMQ.Client;
 using System.ComponentModel.DataAnnotations;
+using System.Text;
 using System.Text.Json;
 
 namespace MicroMarket.Services.Ordering.Services
@@ -14,11 +15,13 @@ namespace MicroMarket.Services.Ordering.Services
     public class DraftOrdersService : IDraftOrdersService
     {
         private readonly OrderingDbContext _dbContext;
+        private readonly IModel _model;
         private readonly int MaxDraftOrdersPerUser = 5;
 
-        public DraftOrdersService(OrderingDbContext dbContext)
+        public DraftOrdersService(OrderingDbContext dbContext, OrderingMessagingService orderingMessagingService)
         {
             _dbContext = dbContext;
+            _model = orderingMessagingService.Model;
         }
 
         public async Task<Result<Order>> ConfirmDraftOrder(Guid initiatorUserId, Guid draftOrderId, bool onlyOwnerAllowed = true)
@@ -95,12 +98,24 @@ namespace MicroMarket.Services.Ordering.Services
                 .Include(o => o.DeliveryAddress)
                 .Include(o => o.ClaimedItems)
                 .SingleOrDefaultAsync();
-            if( draftOrder == null)
+            if (draftOrder == null)
                 return Result.Failure<DraftOrder>($"Draft order {draftOrderId} is not exist");
-            if( onlyOwnerAllowed && draftOrder.CustomerId != initiatorUserId )
+            if (onlyOwnerAllowed && draftOrder.CustomerId != initiatorUserId)
                 return Result.Failure<DraftOrder>($"User {initiatorUserId} haven't access to draft order {draftOrderId}");
             _dbContext.Remove(draftOrder);
             await _dbContext.SaveChangesAsync();
+            // items return
+            var returnItems = new ReturnItems()
+            {
+                ItemsToReturn = draftOrder.ClaimedItems.Select(i =>
+                    new ReturnItems.ItemToReturn()
+                    {
+                        ProductId = i.ProductId,
+                        ProductQuantity = i.OrderedQuantity
+                    }).ToList()
+            };
+            var json = JsonSerializer.Serialize(returnItems);
+            _model.BasicPublish("catalog.messages.exchange", "return-items", null, Encoding.UTF8.GetBytes(json));
             return Result.Success();
         }
 
@@ -120,11 +135,11 @@ namespace MicroMarket.Services.Ordering.Services
 
         public async Task<Result<ICollection<DraftOrder>>> GetDraftOrders(Guid initiatorUserId, Guid userId, bool onlyOwnerAllowed = true)
         {
-            if( onlyOwnerAllowed && initiatorUserId != userId )
+            if (onlyOwnerAllowed && initiatorUserId != userId)
                 return Result.Failure<ICollection<DraftOrder>>($"User {initiatorUserId} haven't access to draft orders of user {userId}");
             var draftOrders = await _dbContext.DraftOrders
                 .Where(o => o.CustomerId == userId)
-                .Include(o => o.DeliveryAddress)    
+                .Include(o => o.DeliveryAddress)
                 .Include(o => o.ClaimedItems)
                 .AsNoTracking()
                 .ToListAsync();

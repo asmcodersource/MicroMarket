@@ -4,6 +4,7 @@ using MicroMarket.Services.Ordering.Services;
 using MicroMarket.Services.SharedCore.Extensions;
 using MicroMarket.Services.SharedCore.MessageBus.Extensions;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,7 +16,11 @@ if (!EF.IsDesignTime)
     builder.Services.AddSingleton<OrderingMessagingService>();
     builder.Services.AddScoped<IDraftOrdersService, DraftOrdersService>();
     builder.Services.AddScoped<IOrdersService, OrdersService>();
-    builder.Services.AddControllers();
+    builder.Services.AddControllers().AddJsonOptions(opts =>
+    {
+        var enumConverter = new JsonStringEnumConverter();
+        opts.JsonSerializerOptions.Converters.Add(enumConverter);
+    });
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddConfiguredSwaggerGen("MicroMarket.Service.Ordering API");
     builder.Services.AddConfiguratedAuthentication(builder.Configuration);

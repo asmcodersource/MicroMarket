@@ -4,6 +4,7 @@ using MicroMarket.Services.Basket.Services;
 using MicroMarket.Services.SharedCore.Extensions;
 using MicroMarket.Services.SharedCore.MessageBus.Extensions;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 // Add services to the container.
 
@@ -15,7 +16,11 @@ if (!EF.IsDesignTime)
     builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
     builder.Services.AddScoped<IBasketService, BasketService>();
     builder.Services.AddSingleton<BasketMessagingService>();
-    builder.Services.AddControllers();
+    builder.Services.AddControllers().AddJsonOptions(opts =>
+    {
+        var enumConverter = new JsonStringEnumConverter();
+        opts.JsonSerializerOptions.Converters.Add(enumConverter);
+    });
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddConfiguredSwaggerGen("MicroMarket.Service.Basket API");
     builder.Services.AddConfiguratedAuthentication(builder.Configuration);

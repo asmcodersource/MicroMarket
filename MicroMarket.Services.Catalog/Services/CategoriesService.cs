@@ -53,7 +53,7 @@ namespace MicroMarket.Services.Catalog.Services
                 .SingleOrDefaultAsync(c => c.Id == categoryId);
             if (category is null)
                 return Result.Failure<(Category, IQueryable<Product>)>($"Category {categoryId} is not exist");
-            
+
             var productsQuery = _dbContext.Categories
                 .Where(c => c.Id == categoryId && !c.IsDeleted && c.IsActive)
                 .Include(c => c.Products)

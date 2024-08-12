@@ -1,9 +1,10 @@
 ﻿using MicroMarket.Services.Basket.Dtos;
 using MicroMarket.Services.Basket.Interfaces;
+using MicroMarket.Services.Basket.Models;
+using MicroMarket.Services.SharedCore.Pagination;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MicroMarket.Services.SharedCore.Pagination;
-using MicroMarket.Services.Basket.Models;
+using System.Security.Claims;
 
 namespace MicroMarket.Services.Basket.Controllers
 {
@@ -23,9 +24,10 @@ namespace MicroMarket.Services.Basket.Controllers
         [ProducesResponseType(typeof(Pagination<BasketItemGetDto>.PaginatedList), 200)]
         public async Task<IActionResult> GetItems(Guid userId, [FromQuery] int? page, [FromQuery] int? itemsPerPage)
         {
-            if ( (page is not null || itemsPerPage is not null) && !(page is not null && itemsPerPage is not null) )
+            if ((page is not null || itemsPerPage is not null) && !(page is not null && itemsPerPage is not null))
                 return BadRequest("When using pagination, both parameters must be specified (page number, number of elements on the page).");
-            var itemsGetResult = await _basketService.GetItems(userId);
+            var initiatorUserId = Guid.Parse(User.Claims.First(c => c.Type == "Id").Value);
+            var itemsGetResult = await _basketService.GetItems(initiatorUserId, userId, !HasPrivilegedAccess(User));
             if (itemsGetResult.IsFailure)
                 return BadRequest(itemsGetResult.Error);
             var itemsDtoQuery = itemsGetResult.Value.Select(i => new BasketItemGetDto(i));
@@ -46,7 +48,7 @@ namespace MicroMarket.Services.Basket.Controllers
         public async Task<IActionResult> GetMyItems([FromQuery] int? page, [FromQuery] int? itemsPerPage)
         {
             var userId = Guid.Parse(User.Claims.First(c => c.Type == "Id").Value);
-            var itemsGetResult = await _basketService.GetItems(userId);
+            var itemsGetResult = await _basketService.GetItems(userId, userId, !HasPrivilegedAccess(User));
             if (itemsGetResult.IsFailure)
                 return BadRequest(itemsGetResult.Error);
             var itemsDtoQuery = itemsGetResult.Value.Select(i => new BasketItemGetDto(i));
@@ -69,7 +71,8 @@ namespace MicroMarket.Services.Basket.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState.ToList());
             var userId = Guid.Parse(User.Claims.First(c => c.Type == "Id").Value);
-            var itemsAddResult = await _basketService.AddItem(userId, productId, newQuantityDto.NewQuantity);
+            var initiatorUserId = Guid.Parse(User.Claims.First(c => c.Type == "Id").Value);
+            var itemsAddResult = await _basketService.AddItem(initiatorUserId, userId, productId, newQuantityDto.NewQuantity, !HasPrivilegedAccess(User));
             if (itemsAddResult.IsFailure)
                 return BadRequest(itemsAddResult.Error);
             return Ok(new BasketItemGetDto(itemsAddResult.Value));
@@ -82,7 +85,8 @@ namespace MicroMarket.Services.Basket.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState.ToList());
-            var itemsAddResult = await _basketService.AddItem(userId, productId, newQuantityDto.NewQuantity);
+            var initiatorUserId = Guid.Parse(User.Claims.First(c => c.Type == "Id").Value);
+            var itemsAddResult = await _basketService.AddItem(initiatorUserId, userId, productId, newQuantityDto.NewQuantity, !HasPrivilegedAccess(User));
             if (itemsAddResult.IsFailure)
                 return BadRequest(itemsAddResult.Error);
             return Ok(new BasketItemGetDto(itemsAddResult.Value));
@@ -96,7 +100,7 @@ namespace MicroMarket.Services.Basket.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState.ToList());
             var userId = Guid.Parse(User.Claims.First(c => c.Type == "Id").Value);
-            var itemsQuanitytUpdateResult = await _basketService.UpdateQuantity(userId, itemId, newQuantityDto.NewQuantity);
+            var itemsQuanitytUpdateResult = await _basketService.UpdateQuantity(userId, itemId, newQuantityDto.NewQuantity, !HasPrivilegedAccess(User));
             if (itemsQuanitytUpdateResult.IsFailure)
                 return BadRequest(itemsQuanitytUpdateResult.Error);
             return Ok(new BasketItemGetDto(itemsQuanitytUpdateResult.Value));
@@ -110,7 +114,7 @@ namespace MicroMarket.Services.Basket.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState.ToList());
             var userId = Guid.Parse(User.Claims.First(c => c.Type == "Id").Value);
-            var itemsRemoveResult = await _basketService.RemoveItem(userId, itemId);
+            var itemsRemoveResult = await _basketService.RemoveItem(userId, itemId, !HasPrivilegedAccess(User));
             if (itemsRemoveResult.IsFailure)
                 return BadRequest(itemsRemoveResult.Error);
             return Ok();
@@ -124,10 +128,17 @@ namespace MicroMarket.Services.Basket.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState.ToList());
             var userId = Guid.Parse(User.Claims.First(c => c.Type == "Id").Value);
-            var orderCreateResult = await _basketService.CreateOrder(userId, itemsInOrder);
+            var initiatorUserId = Guid.Parse(User.Claims.First(c => c.Type == "Id").Value);
+            var orderCreateResult = await _basketService.CreateOrder(initiatorUserId, userId, itemsInOrder);
             if (orderCreateResult.IsFailure)
                 return BadRequest(orderCreateResult.Error);
             return Ok(orderCreateResult.Value);
+        }
+
+        [NonAction]
+        private bool HasPrivilegedAccess(ClaimsPrincipal user)
+        {
+            return User.Claims.Any(c => c.Type == "MANAGER" || c.Type == "ADMIN");
         }
     }
 }
