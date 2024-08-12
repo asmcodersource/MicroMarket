@@ -28,7 +28,7 @@
 
         [Required(ErrorMessage = "Phone number is required.")]
         [Phone(ErrorMessage = "Invalid phone number.")]
-        [StringLength(15, ErrorMessage = "Phone number cannot exceed 15 characters.")]
+        [StringLength(12, ErrorMessage = "Phone number cannot exceed 15 characters.")]
         public string CustomerPhoneNumber { get; set; } = string.Empty;
 
 

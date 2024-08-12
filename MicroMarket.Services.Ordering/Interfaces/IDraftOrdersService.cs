@@ -7,10 +7,11 @@ namespace MicroMarket.Services.Ordering.Interfaces
 {
     public interface IDraftOrdersService
     {
-        public Task<Result<ICollection<DraftOrder>>> GetsDraftOrders(Guid userId);
-        public Task<Result<DraftOrder>> GetsDraftOrder(Guid userId, Guid draftOrderId);
+        public Task<Result<ICollection<DraftOrder>>> GetDraftOrders(Guid initiatorUserId, Guid userId, bool onlyOwnerAllowed = true);
+        public Task<Result<DraftOrder>> GetDraftOrder(Guid initiatorUserId, Guid draftOrderId, bool onlyOwnerAllowed = true);
+        public Task<Result> DeleteDraftOrder(Guid initiatorUserId, Guid draftOrderId, bool onlyOwnerAllowed = true);
         public Task<Result<DraftOrder>> CreateDraftOrder(CreateDraftOrder createDraftOrder);
-        public Task<Result<DraftOrder>> UpdateDraftOrder(Guid userId, Guid draftOrder, DraftOrderUpdateDto draftOrderUpdateDto);
-        public Task<Result<Order>> ConfirmDraftOrder(Guid userId, Guid draftOrderId);
+        public Task<Result<DraftOrder>> UpdateDraftOrder(Guid initiatorUserId, Guid draftOrderId, DraftOrderUpdateDto draftOrderUpdateDto, bool onlyOwnerAllowed = true);
+        public Task<Result<Order>> ConfirmDraftOrder(Guid initiatorUserId, Guid draftOrderId, bool onlyOwnerAllowed = true);
     }
 }
