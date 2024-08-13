@@ -47,6 +47,7 @@ namespace MicroMarket.Services.Ordering.Services
                 {
                     CustomerId = draftOrder.CustomerId,
                     Items = draftOrder.ClaimedItems,
+                    CustomerNote = draftOrder.CustomerNote,
                     DeliveryAddress = draftOrder.DeliveryAddress,
                     PaymentType = draftOrder.PaymentType,
                     CreatedAt = DateTime.UtcNow,
@@ -159,6 +160,7 @@ namespace MicroMarket.Services.Ordering.Services
                 return Result.Failure<DraftOrder>($"User {initiatorUserId} haven't access to draft order {draftOrderId}");
             draftOrder.DeliveryAddress = draftOrderUpdateDto.DeliveryAddress;
             draftOrder.PaymentType = draftOrderUpdateDto.PaymentType;
+            draftOrder.CustomerNote = draftOrderUpdateDto.CustomerNote;
             await _dbContext.SaveChangesAsync();
             return Result.Success<DraftOrder>(draftOrder);
         }

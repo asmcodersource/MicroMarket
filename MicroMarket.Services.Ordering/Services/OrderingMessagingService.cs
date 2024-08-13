@@ -3,6 +3,8 @@ using MicroMarket.Services.SharedCore.MessageBus.MessageContracts;
 using MicroMarket.Services.SharedCore.MessageBus.Services;
 using MicroMarket.Services.SharedCore.RabbitMqRpc;
 using RabbitMQ.Client;
+using System.Text.Json;
+using System.Text;
 
 namespace MicroMarket.Services.Ordering.Services
 {
@@ -43,6 +45,12 @@ namespace MicroMarket.Services.Ordering.Services
             {
                 return SharedCore.RabbitMqRpc.Result<CreatedDraftOrderResponse>.Failure(ex.Message);
             }
+        }
+
+        public void ReturnItemsToCatalog(ReturnItems returnItems)
+        {
+            var json = JsonSerializer.Serialize(returnItems);
+            Model.BasicPublish("catalog.messages.exchange", "return-items", null, Encoding.UTF8.GetBytes(json));
         }
     }
 }

@@ -47,6 +47,8 @@ namespace MicroMarket.Services.Basket.Controllers
         [ProducesResponseType(typeof(Pagination<BasketItemGetDto>.PaginatedList), 200)]
         public async Task<IActionResult> GetMyItems([FromQuery] int? page, [FromQuery] int? itemsPerPage)
         {
+            if ((page is not null || itemsPerPage is not null) && !(page is not null && itemsPerPage is not null))
+                return BadRequest("When using pagination, both parameters must be specified (page number, number of elements on the page).");
             var userId = Guid.Parse(User.Claims.First(c => c.Type == "Id").Value);
             var itemsGetResult = await _basketService.GetItems(userId, userId, !HasPrivilegedAccess(User));
             if (itemsGetResult.IsFailure)

@@ -4,6 +4,7 @@
     {
         public Guid Id { get; set; }
         public Guid CustomerId { get; set; }
+        public string CustomerNote { get; set; } = string.Empty;
         public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
         public DeliveryAddress DeliveryAddress { get; set; } = new DeliveryAddress();
         public PaymentType PaymentType { get; set; } = PaymentType.CreditCard;

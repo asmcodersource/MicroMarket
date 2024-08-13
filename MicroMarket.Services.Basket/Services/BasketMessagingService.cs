@@ -73,5 +73,11 @@ namespace MicroMarket.Services.Basket.Services
                 dbContext.SaveChanges();
             }
         }
+
+        public void ReturnItemsToCatalog(ReturnItems returnItems)
+        {
+            var json = JsonSerializer.Serialize(returnItems);
+            Model.BasicPublish("catalog.messages.exchange", "return-items", null, Encoding.UTF8.GetBytes(json));
+        }
     }
 }

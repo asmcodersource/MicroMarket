@@ -18,6 +18,7 @@ namespace MicroMarket.Services.Basket.Services
         private readonly RpcClient<AddItemToBasket, ItemInformationResponse> _itemAddRpcClient;
         private readonly RpcClient<ClaimOrderItems, ClaimedItemsResponse> _claimItemsRpcClient;
         private readonly RpcClient<CreateDraftOrder, CreatedDraftOrderResponse> _createDraftOrderRpcClient;
+        private readonly BasketMessagingService _basketMessagingService;
 
         public BasketService(BasketDbContext basketDbContext, BasketMessagingService basketMessagingService)
         {
@@ -26,6 +27,7 @@ namespace MicroMarket.Services.Basket.Services
             _itemAddRpcClient = basketMessagingService.ItemAddRpcClient;
             _claimItemsRpcClient = basketMessagingService.ClaimItemsRpcClient;
             _createDraftOrderRpcClient = basketMessagingService.CreateDraftOrderRpcClient;
+            _basketMessagingService = basketMessagingService;
         }
 
         public async Task<CSharpFunctionalExtensions.Result<Item>> AddItem(Guid initiatorUserId, Guid userId, Guid productId, int quantity, bool onlyOwnerAllowed = true)
@@ -167,8 +169,7 @@ namespace MicroMarket.Services.Basket.Services
                             ProductQuantity = i.Quantity
                         }).ToList()
                 };
-                var json = JsonSerializer.Serialize(returnItems);
-                _model.BasicPublish("catalog.messages.exchange", "return-items", null, Encoding.UTF8.GetBytes(json));
+                _basketMessagingService.ReturnItemsToCatalog(returnItems);
                 return CSharpFunctionalExtensions.Result.Failure<Guid>($"Some error happend during draft order creating {createDraftOrderResponse.Error}");
             }
             else
