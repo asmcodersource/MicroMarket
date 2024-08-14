@@ -6,6 +6,7 @@ namespace MicroMarket.Services.Ordering.Interfaces
 {
     public interface IOrdersService
     {
+        public Task<Result<IQueryable<Order>>> GetOrders();
         public Task<Result<IQueryable<Order>>> GetUserOrders(Guid initiatorUserId, Guid userId, bool onlyOwnerAllowed = true);
         public Task<Result<Order>> GetOrder(Guid initiatorUserId, Guid orderId, bool onlyOwnerAllowed = true);
         public Task<Result<Order>> UpdateOrder(Guid orderId, OrderUpdateDto orderUpdateDto);

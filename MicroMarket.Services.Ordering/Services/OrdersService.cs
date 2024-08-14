@@ -146,5 +146,10 @@ namespace MicroMarket.Services.Ordering.Services
             order.ManagerNote = note;
             return Result.Success();
         }
+
+        public async Task<Result<IQueryable<Order>>> GetOrders()
+        {
+            return Result.Success<IQueryable<Order>>(_dbContext.Orders.AsQueryable());
+        }
     }
 }

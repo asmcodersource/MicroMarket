@@ -15,17 +15,44 @@ namespace MicroMarket.Services.Ordering.Controllers
     [Route("/api/ordering/[controller]")]
     public class OrdersController : ControllerBase
     {
+        private readonly IManagerFilterService _managerFilterService;
+        private readonly ICustomerFilterService _customerFilterService;
         private readonly IOrdersService _orderingService;
 
-        public OrdersController(IOrdersService ordersService)
+        public OrdersController(IOrdersService ordersService, IManagerFilterService managerFilterService, ICustomerFilterService customerFilterService)
         {
             _orderingService = ordersService;
+            _managerFilterService = managerFilterService;
+            _customerFilterService = customerFilterService;
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "ADMIN,MANAGER")]
+        [ProducesResponseType(typeof(Pagination<Models.Order>.Page), 200)]
+        public async Task<IActionResult> GetOrders([FromQuery] int? page, [FromQuery] int? itemsPerPage, [FromQuery] ManagerFilterOptions managerFilterOptions)
+        {
+            if ((page is not null || itemsPerPage is not null) && !(page is not null && itemsPerPage is not null))
+                return BadRequest("When using pagination, both parameters must be specified (page number, number of elements on the page).");
+            var getUserOrdersResult = await _orderingService.GetOrders();
+            if (getUserOrdersResult.IsFailure)
+                return StatusCode(StatusCodes.Status500InternalServerError, getUserOrdersResult.Error);
+            if (page is null)
+            {
+                page = 0;
+                itemsPerPage = int.MaxValue;
+            }
+            var ordersQuery = getUserOrdersResult.Value;
+            ordersQuery = _managerFilterService.Filter(ordersQuery, managerFilterOptions);
+            var paginationResult = await Pagination<Models.Order>.Paginate(ordersQuery, page.Value!, itemsPerPage!.Value);
+            if (paginationResult.IsFailure)
+                return StatusCode(StatusCodes.Status400BadRequest, paginationResult.Error);
+            return Ok(paginationResult.Value);
         }
 
         [HttpGet("my")]
         [Authorize(Roles = "CUSTOMER")]
-        [ProducesResponseType(typeof(Pagination<Models.Order>.PaginatedList), 200)]
-        public async Task<IActionResult> GetMyOrders([FromQuery] int? page, [FromQuery] int? itemsPerPage)
+        [ProducesResponseType(typeof(Pagination<Models.Order>.Page), 200)]
+        public async Task<IActionResult> GetMyOrders([FromQuery] int? page, [FromQuery] int? itemsPerPage, [FromQuery] CustomerFilterOptions customerFilterOptions)
         {
             if ((page is not null || itemsPerPage is not null) && !(page is not null && itemsPerPage is not null))
                 return BadRequest("When using pagination, both parameters must be specified (page number, number of elements on the page).");
@@ -38,7 +65,9 @@ namespace MicroMarket.Services.Ordering.Controllers
                 page = 0;
                 itemsPerPage = int.MaxValue;
             }
-            var paginationResult = await Pagination<Models.Order>.Paginate(getUserOrdersResult.Value, page.Value!, itemsPerPage!.Value);
+            var ordersQuery = getUserOrdersResult.Value;
+            ordersQuery = _customerFilterService.Filter(ordersQuery, customerFilterOptions);
+            var paginationResult = await Pagination<Models.Order>.Paginate(ordersQuery, page.Value!, itemsPerPage!.Value);
             if (paginationResult.IsFailure)
                 return StatusCode(StatusCodes.Status400BadRequest, paginationResult.Error);
             return Ok(paginationResult.Value);
@@ -46,8 +75,8 @@ namespace MicroMarket.Services.Ordering.Controllers
 
         [HttpGet("user/{userId}")]
         [Authorize(Roles = "CUSTOMER,ADMIN,MANAGER")]
-        [ProducesResponseType(typeof(Pagination<Models.Order>.PaginatedList), 200)]
-        public async Task<IActionResult> GetOrders(Guid userId, [FromQuery] int? page, [FromQuery] int? itemsPerPage)
+        [ProducesResponseType(typeof(Pagination<Models.Order>.Page), 200)]
+        public async Task<IActionResult> GetUserOrders(Guid userId, [FromQuery] int? page, [FromQuery] int? itemsPerPage, [FromQuery] CustomerFilterOptions customerFilterOptions)
         {
             if ((page is not null || itemsPerPage is not null) && !(page is not null && itemsPerPage is not null))
                 return BadRequest("When using pagination, both parameters must be specified (page number, number of elements on the page).");
@@ -62,7 +91,9 @@ namespace MicroMarket.Services.Ordering.Controllers
                 page = 0;
                 itemsPerPage = int.MaxValue;
             }
-            var paginationResult = await Pagination<Models.Order>.Paginate(getUserOrdersResult.Value, page.Value!, itemsPerPage!.Value);
+            var ordersQuery = getUserOrdersResult.Value;
+            ordersQuery = _customerFilterService.Filter(ordersQuery, customerFilterOptions);
+            var paginationResult = await Pagination<Models.Order>.Paginate(ordersQuery, page.Value!, itemsPerPage!.Value);
             if (paginationResult.IsFailure)
                 return StatusCode(StatusCodes.Status400BadRequest, paginationResult.Error);
             return Ok(paginationResult.Value);

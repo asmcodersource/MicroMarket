@@ -33,54 +33,67 @@ namespace MicroMarket.Services.Catalog.Services
             return Result.Success();
         }
 
-        public async Task<Result<Category>> GetCategory(Guid categoryId)
+        public async Task<Result<Category>> GetCategory(Guid categoryId, bool allowNonActive = false)
         {
             var category = await _dbContext.Categories
-                .Where(c => !c.IsDeleted && c.IsActive)
+                .Where(c => !c.IsDeleted)
                 .AsNoTracking()
                 .SingleOrDefaultAsync(c => c.Id == categoryId);
             if (category is null)
                 return Result.Failure<Category>($"Category {categoryId} is not exist");
-
+            if (!category.IsActive && !allowNonActive)
+                return Result.Failure<Category>($"Category {categoryId} is not active");
             return Result.Success(category);
         }
 
-        public async Task<Result<(Category, IQueryable<Product>)>> GetCategoryProducts(Guid categoryId)
+        public async Task<Result<(Category, IQueryable<Product>)>> GetCategoryProducts(Guid categoryId, bool allowNonActive = false)
         {
             var category = await _dbContext.Categories
-                .Where(c => !c.IsDeleted && c.IsActive)
+                .Where(c => !c.IsDeleted)
                 .AsNoTracking()
                 .SingleOrDefaultAsync(c => c.Id == categoryId);
             if (category is null)
                 return Result.Failure<(Category, IQueryable<Product>)>($"Category {categoryId} is not exist");
+            if (!category.IsActive && !allowNonActive)
+                return Result.Failure<(Category, IQueryable<Product>)>($"Category {categoryId} is not active");
 
             var productsQuery = _dbContext.Categories
-                .Where(c => c.Id == categoryId && !c.IsDeleted && c.IsActive)
+                .Where(c => c.Id == categoryId && !c.IsDeleted)
+                .Where(c => c.IsActive || allowNonActive)
                 .Include(c => c.Products)
                 .AsNoTracking()
                 .SelectMany(c => c.Products)
-                .Where(p => p.IsActive && !p.IsDeleted); // Если вам нужно фильтровать продукты
+                .Where(p => !p.IsDeleted); 
+            if( !allowNonActive )
+                productsQuery = productsQuery.Where(p => p.IsActive);
             return Result.Success((category, productsQuery));
         }
 
-        public async Task<Result<ICollection<Category>>> GetRootCategories()
+        public async Task<Result<ICollection<Category>>> GetRootCategories(bool allowNonActive = false)
         {
-            var categories = await _dbContext.Categories
-                .Where(c => !c.IsDeleted && c.IsActive && c.ParentCategoryId == null)
+            var categoriesQuery = _dbContext.Categories
+                .Where(c => !c.IsDeleted && c.ParentCategoryId == null)
+                .Where(c => c.IsActive || allowNonActive)
                 .Include(c => c.Products)
-                .AsNoTracking()
-                .ToListAsync();
+                .AsNoTracking();
+            var categories = await categoriesQuery.ToListAsync();
             return Result.Success(categories as ICollection<Category>);
         }
 
-        public async Task<Result<ICollection<Category>>> GetChildCategories(Guid categoryId)
+        public async Task<Result<ICollection<Category>>> GetChildCategories(Guid categoryId, bool allowNonActive = false)
         {
-            var isCategoryPresented = await _dbContext.Categories.Where(c => c.Id == categoryId).AnyAsync();
-            if (!isCategoryPresented)
+            var category = await _dbContext.Categories
+                .Where(c => !c.IsDeleted)
+                .AsNoTracking()
+                .SingleOrDefaultAsync(c => c.Id == categoryId);
+            if (category is null)
                 return Result.Failure<ICollection<Category>>($"Parent category {categoryId} is not exists");
+            if(!category.IsActive && !allowNonActive)
+                return Result.Failure<ICollection<Category>>($"Parent category {categoryId} is not active");
 
             var categories = await _dbContext.Categories
                 .Where(c => c.ParentCategoryId == categoryId)
+                .Where(c => c.IsActive || allowNonActive)
                 .AsNoTracking()
                 .ToListAsync();
             return Result.Success(categories as ICollection<Category>);
@@ -89,7 +102,7 @@ namespace MicroMarket.Services.Catalog.Services
         public async Task<Result<Category>> UpdateCategory(CategoryUpdateRequestDto categoryUpdateRequestDto)
         {
             var category = await _dbContext.Categories
-                .Where(c => !c.IsDeleted && c.IsActive)
+                .Where(c => !c.IsDeleted)
                 .Include(c => c.Products)
                 .SingleOrDefaultAsync(c => c.Id == categoryUpdateRequestDto.Id);
             if (category is null)

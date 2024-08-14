@@ -21,7 +21,7 @@ namespace MicroMarket.Services.Basket.Controllers
 
         [HttpGet("{userId}/items")]
         [Authorize(Roles = "ADMIN,MANAGER")]
-        [ProducesResponseType(typeof(Pagination<BasketItemGetDto>.PaginatedList), 200)]
+        [ProducesResponseType(typeof(Pagination<BasketItemGetDto>.Page), 200)]
         public async Task<IActionResult> GetItems(Guid userId, [FromQuery] int? page, [FromQuery] int? itemsPerPage)
         {
             if ((page is not null || itemsPerPage is not null) && !(page is not null && itemsPerPage is not null))
@@ -44,7 +44,7 @@ namespace MicroMarket.Services.Basket.Controllers
 
         [HttpGet("my/items")]
         [Authorize(Roles = "CUSTOMER")]
-        [ProducesResponseType(typeof(Pagination<BasketItemGetDto>.PaginatedList), 200)]
+        [ProducesResponseType(typeof(Pagination<BasketItemGetDto>.Page), 200)]
         public async Task<IActionResult> GetMyItems([FromQuery] int? page, [FromQuery] int? itemsPerPage)
         {
             if ((page is not null || itemsPerPage is not null) && !(page is not null && itemsPerPage is not null))

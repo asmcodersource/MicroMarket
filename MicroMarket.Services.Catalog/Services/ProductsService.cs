@@ -38,7 +38,7 @@ namespace MicroMarket.Services.Catalog.Services
         public async Task<CSharpFunctionalExtensions.Result<Product>> CreateProduct(ProductCreateRequestDto productCreateRequestDto)
         {
             var isCatetegoryExists = await _dbContext.Categories
-                .Where(c => c.Id == productCreateRequestDto.CategoryId && c.IsActive && !c.IsDeleted)
+                .Where(c => c.Id == productCreateRequestDto.CategoryId && !c.IsDeleted)
                 .AnyAsync();
             if (!isCatetegoryExists)
                 return Result.Failure<Product>($"Category {productCreateRequestDto.CategoryId} is not exists");
@@ -87,13 +87,15 @@ namespace MicroMarket.Services.Catalog.Services
             }
         }
 
-        public async Task<CSharpFunctionalExtensions.Result<Product>> GetProduct(Guid productId)
+        public async Task<CSharpFunctionalExtensions.Result<Product>> GetProduct(Guid productId, bool allowNonActive = false)
         {
             var product = await _dbContext.Products
                 .AsNoTracking()
                 .SingleOrDefaultAsync(p => p.Id == productId && !p.IsDeleted);
             if (product is null)
                 return Result.Failure<Product>($"Product {productId} is not exists");
+            if( !product.IsActive && !allowNonActive )
+                return Result.Failure<Product>($"Product {productId} is not active");
             return Result.Success(product);
         }
 
@@ -167,6 +169,11 @@ namespace MicroMarket.Services.Catalog.Services
             var json = JsonSerializer.Serialize(itemProductInfo);
             var bytes = Encoding.UTF8.GetBytes(json);
             _model.BasicPublish("catalog.messages.exchange", "product-update", true, null, bytes);
+        }
+
+        public Result<IQueryable<Product>> GetProducts()
+        {
+            return Result.Success<IQueryable<Product>>(_dbContext.Products);
         }
     }
 }

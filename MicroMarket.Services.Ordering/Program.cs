@@ -16,6 +16,8 @@ if (!EF.IsDesignTime)
     builder.Services.AddSingleton<OrderingMessagingService>();
     builder.Services.AddScoped<IDraftOrdersService, DraftOrdersService>();
     builder.Services.AddScoped<IOrdersService, OrdersService>();
+    builder.Services.AddScoped<IManagerFilterService, ManagerFilterService>();
+    builder.Services.AddScoped<ICustomerFilterService, CustomerFilterService>();
     builder.Services.AddControllers().AddJsonOptions(opts =>
     {
         var enumConverter = new JsonStringEnumConverter();

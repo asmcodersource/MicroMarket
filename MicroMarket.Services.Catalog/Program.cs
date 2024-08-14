@@ -16,6 +16,8 @@ if (!EF.IsDesignTime)
     builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
     builder.Services.AddScoped<ICategoriesService, CategoriesService>();
     builder.Services.AddScoped<IProductsService, ProductsService>();
+    builder.Services.AddSingleton<IManagerProductsFilterService, ManagerProductFilterService>();
+    builder.Services.AddSingleton<ICustomerProductsFilterService, CustomerProductFilterService>();
     builder.Services.AddSingleton<CatalogMessagingService>();
     builder.Services.AddControllers().AddJsonOptions(opts =>
     {
