@@ -1,4 +1,4 @@
-﻿namespace MicroMarket.Services.Ordering.Models
+﻿namespace MicroMarket.Services.Ordering.Enums
 {
     public enum PaymentType
     {

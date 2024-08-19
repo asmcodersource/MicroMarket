@@ -32,5 +32,13 @@
             else
                 return CSharpFunctionalExtensions.Result.Failure<ValueType>(result.Error);
         }
+
+        public static Result<ValueType> ConvertToResult(CSharpFunctionalExtensions.Result<ValueType> result)
+        {
+            if (result.IsSuccess)
+                return Result<ValueType>.Success(result.Value);
+            else
+                return Result<ValueType>.Failure(result.Error);
+        }
     }
 }

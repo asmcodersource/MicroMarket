@@ -56,6 +56,20 @@
       "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ],
       "SwaggerKey": "Ordering"
     }
+    {
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "DownstreamPathTemplate": "/api/liqpay-payment/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "micromarket.services.liqpay-payment",
+          "Port": 8081
+        }
+      ],
+      "UpstreamPathTemplate": "/api/liqpay-payment/{everything}",
+      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ],
+      "SwaggerKey": "LiqPay-Payment"
+    }
   ],
   "SwaggerEndPoints": [
     {
@@ -95,6 +109,16 @@
           "Name": "Ordering API",
           "Version": "v1",
           "Url": "https://micromarket.services.ordering:8081/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "LiqPay-Payment",
+      "Config": [
+        {
+          "Name": "LiqPay Payment API",
+          "Version": "v1",
+          "Url": "https://micromarket.services.liqpay-payment:8081/swagger/v1/swagger.json"
         }
       ]
     }

@@ -126,6 +126,30 @@ services:
     networks:
       - internal
 
+  micromarket.services.liqpay-payment:
+    image: micromarket.services.liqpay-payment
+    build:
+      context: .
+      dockerfile: MicroMarket.Services.LiqPayPayment/Dockerfile
+    environment:
+      - ConnectionString=Host=${LIQPAY_PAYMENT_POSTGRES_HOST};Port=${LIQPAY_PAYMENT_POSTGRES_PORT};Database=${LIQPAY_PAYMENT_POSTGRES_DB};Username=${LIQPAY_PAYMENT_POSTGRES_USER};Password=${LIQPAY_PAYMENT_POSTGRES_PASSWORD}
+      - RabbitHost=${RABBIT_HOST}
+    depends_on:
+      - micromarket.services.liqpay-payment.postgres
+      - micromarket.services.rabbitmq
+      - shared.redis
+    networks:
+      - internal
+
+  micromarket.services.liqpay-payment.postgres:
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=${LIQPAY_PAYMENT_POSTGRES_DB}
+      - POSTGRES_USER=${LIQPAY_PAYMENT_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${LIQPAY_PAYMENT_POSTGRES_PASSWORD}
+    networks:
+      - internal
+
 networks:
   internal:
     driver: bridge

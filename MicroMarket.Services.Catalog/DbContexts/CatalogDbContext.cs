@@ -8,6 +8,8 @@ namespace MicroMarket.Services.Catalog.DbContexts
         private readonly IConfiguration _configuration;
         public DbSet<Category> Categories { get; set; }
         public DbSet<Product> Products { get; set; }
+        public DbSet<OutboxOperation> OutboxOperations { get; set; }
+        public DbSet<ItemsClaimOperation> ItemsClaimOperations { get; set; }
 
         public CatalogDbContext(DbContextOptions<CatalogDbContext> options, IConfiguration configuration)
             : base(options)

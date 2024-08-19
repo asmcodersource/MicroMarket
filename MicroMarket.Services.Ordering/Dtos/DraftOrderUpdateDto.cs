@@ -1,4 +1,5 @@
-﻿using MicroMarket.Services.Ordering.Models;
+﻿using MicroMarket.Services.Ordering.Enums;
+using MicroMarket.Services.Ordering.Models;
 using System.ComponentModel.DataAnnotations;
 
 namespace MicroMarket.Services.Ordering.Dtos

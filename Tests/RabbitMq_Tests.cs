@@ -25,7 +25,7 @@ namespace Tests
             for (int i = 0; i < 10000; i++)
             {
                 var uniqValue = Guid.NewGuid().ToString();
-                var response = await rpcClient.CallAsync(uniqValue);
+                var (response, _) = await rpcClient.CallAsync(uniqValue);
                 Assert.True(response.IsSuccess);
                 Assert.Equal(uniqValue, response.Value);
             }

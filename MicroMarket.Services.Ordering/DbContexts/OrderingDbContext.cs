@@ -10,6 +10,8 @@ namespace MicroMarket.Services.Ordering.DbContexts
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderState> OrderStates { get; set; }
         public DbSet<DraftOrder> DraftOrders { get; set; }
+        public DbSet<OutboxOperation> OutboxOperations { get; set; }
+        public DbSet<Models.CreateDraftOrder> CreateDraftOrderOperations { get; set; }
 
         public OrderingDbContext(DbContextOptions<OrderingDbContext> options, IConfiguration configuration) : base(options)
         {

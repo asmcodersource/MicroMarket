@@ -2,6 +2,7 @@
 using MicroMarket.Services.Ordering.DbContexts;
 using MicroMarket.Services.Ordering.Dtos;
 using MicroMarket.Services.Ordering.Interfaces;
+using MicroMarket.Services.Ordering.Enums;
 using MicroMarket.Services.Ordering.Models;
 using MicroMarket.Services.SharedCore.MessageBus.MessageContracts;
 using Microsoft.EntityFrameworkCore;
@@ -68,28 +69,48 @@ namespace MicroMarket.Services.Ordering.Services
             }
         }
 
-        public async Task<Result<DraftOrder>> CreateDraftOrder(CreateDraftOrder createDraftOrder)
+        public async Task<Result<DraftOrder>> CreateDraftOrder(SharedCore.MessageBus.MessageContracts.CreateDraftOrder createDraftOrder)
         {
-            var userDraftOrderCount = await _dbContext.DraftOrders
+            var transaction = await _dbContext.Database.BeginTransactionAsync();
+            try
+            {
+                var userDraftOrderCount = await _dbContext.DraftOrders
                 .Where(o => o.CustomerId == createDraftOrder.CustomerId)
                 .CountAsync();
-            if (userDraftOrderCount > MaxDraftOrdersPerUser)
-                return Result.Failure<DraftOrder>($"User {createDraftOrder.CustomerId} has too many draft orders, for creating new one");
-            var draftOrder = new DraftOrder()
+                if (userDraftOrderCount > MaxDraftOrdersPerUser)
+                    return Result.Failure<DraftOrder>($"User {createDraftOrder.CustomerId} has too many draft orders, for creating new one");
+                var draftOrder = new DraftOrder()
+                {
+                    CustomerId = createDraftOrder.CustomerId,
+                    ClaimedItems = createDraftOrder.Items.Select(i =>
+                        new Item()
+                        {
+                            OrderedQuantity = i.ProductQuantity,
+                            ProductName = i.ProductName,
+                            ProductId = i.ProductId,
+                            ProductPrice = i.ProductPrice
+                        }).ToList()
+                };
+                _dbContext.DraftOrders.Add(draftOrder);
+                await _dbContext.SaveChangesAsync();
+
+                var operation = new OutboxOperation()
+                {
+                    CorrelationId = createDraftOrder.OperationId,
+                    AggregationId = draftOrder.Id,
+                    ProcessedAt = DateTime.UtcNow,
+                    OperationType = OutboxOperationType.CreateDraftOrder,
+                    State = OutboxState.Completed
+                };
+                _dbContext.OutboxOperations.Add(operation);
+                await _dbContext.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return Result.Success(draftOrder);
+            } catch (Exception ex)
             {
-                CustomerId = createDraftOrder.CustomerId,
-                ClaimedItems = createDraftOrder.Items.Select(i =>
-                    new Item()
-                    {
-                        OrderedQuantity = i.ProductQuantity,
-                        ProductName = i.ProductName,
-                        ProductId = i.ProductId,
-                        ProductPrice = i.ProductPrice
-                    }).ToList()
-            };
-            _dbContext.DraftOrders.Add(draftOrder);
-            await _dbContext.SaveChangesAsync();
-            return Result.Success(draftOrder);
+                await transaction.RollbackAsync();
+                return Result.Failure<DraftOrder>(ex.Message);
+            }
         }
 
         public async Task<Result> DeleteDraftOrder(Guid initiatorUserId, Guid draftOrderId, bool onlyOwnerAllowed = true)

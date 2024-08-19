@@ -1,12 +1,16 @@
 ﻿using MicroMarket.Services.Catalog.DbContexts;
+using MicroMarket.Services.Catalog.Models;
 using MicroMarket.Services.SharedCore.MessageBus.MessageContracts;
 using MicroMarket.Services.SharedCore.MessageBus.Services;
 using MicroMarket.Services.SharedCore.RabbitMqRpc;
+using MicroMarket.Services.Catalog.Models;
+using MicroMarket.Services.Catalog.Enums;
 using Microsoft.EntityFrameworkCore;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
 using System.Text.Json;
+using MicroMarket.Services.Catalog.Interfaces;
 
 namespace MicroMarket.Services.Catalog.Services
 {
@@ -44,42 +48,10 @@ namespace MicroMarket.Services.Catalog.Services
         {
             using (var scope = _serviceScopeFactory.CreateScope())
             {
-                var dbContext = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
-                var transaction = dbContext.Database.BeginTransaction();
-                try
-                {
-                    var response = new ClaimedItemsResponse();
-                    foreach (var item in claimOrderItems.ItemsToClaims)
-                    {
-                        var product = dbContext.Products
-                            .Where(p => !p.IsDeleted && p.IsActive)
-                            .SingleOrDefault(p => p.Id == item.ProductId);
-                        if (product is null)
-                            throw new InvalidOperationException($"Product {item.ProductId} is dont exist or not active");
-                        if ((product.StockQuantity - item.ProductQuantity) < 0)
-                            throw new InvalidOperationException($"Not enought stock quantity of product {item.ProductId}");
-                        product.StockQuantity = product.StockQuantity - item.ProductQuantity;
-                        dbContext.Update(product);
-                        response.ClaimedItems.Add(
-                            new ClaimedItemsResponse.ClaimedItem()
-                            {
-                                ProductId = item.ProductId,
-                                ProductName = product.Name,
-                                ProductDescription = product.Description,
-                                ProductPrice = product.Price,
-                                ProductQuantity = item.ProductQuantity,
-                            }
-                        );
-                    }
-                    dbContext.SaveChanges();
-                    transaction.Commit();
-                    return SharedCore.RabbitMqRpc.Result<ClaimedItemsResponse>.Success(response);
-                }
-                catch (Exception ex)
-                {
-                    transaction.Rollback();
-                    return SharedCore.RabbitMqRpc.Result<ClaimedItemsResponse>.Failure(ex.Message);
-                }
+                var productsService = scope.ServiceProvider.GetRequiredService<IProductsService>();
+                var result = productsService.ClaimItems(claimOrderItems).Result;
+                var convertedResult = Result<ClaimedItemsResponse>.ConvertToResult(result);
+                return convertedResult;
             }
         }
 
@@ -105,6 +77,7 @@ namespace MicroMarket.Services.Catalog.Services
                         IsActive = product.IsActive,
                         IsDeleted = product.IsDeleted
                     };
+                    dbContext.SaveChanges();
                     transaction.Commit();
                     return SharedCore.RabbitMqRpc.Result<ItemInformationResponse>.Success(response);
                 }

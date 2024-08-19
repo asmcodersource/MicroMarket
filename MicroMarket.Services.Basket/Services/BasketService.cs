@@ -2,6 +2,7 @@
 using MicroMarket.Services.Basket.DbContexts;
 using MicroMarket.Services.Basket.Interfaces;
 using MicroMarket.Services.Basket.Models;
+using MicroMarket.Services.Basket.Enums;
 using MicroMarket.Services.SharedCore.MessageBus.MessageContracts;
 using MicroMarket.Services.SharedCore.RabbitMqRpc;
 using Microsoft.EntityFrameworkCore;
@@ -39,7 +40,7 @@ namespace MicroMarket.Services.Basket.Services
                 ItemProductId = productId,
                 RequiredQuantity = quantity
             };
-            var response = await _itemAddRpcClient.CallAsync(request, CancellationToken.None);
+            var (response, _) = await _itemAddRpcClient.CallAsync(request, CancellationToken.None);
             if (response.IsFailure)
                 return Result.Failure<Item>($"Item with product {productId} wasn't added to the basket, error= {response.Error}");
 
@@ -129,6 +130,15 @@ namespace MicroMarket.Services.Basket.Services
             if (onlyOwnerAllowed && initiatorUserId != userId)
                 return Result.Failure<Guid>($"User {initiatorUserId} haven't acces to the items of user {userId}");
 
+            var outboxOperation = new OutboxOperations()
+            {
+                AggregateId = Guid.NewGuid(),
+                OperationType = OutboxOperationType.OrderCreating,
+                State = OutboxState.Executing
+            };
+            await _dbContext.AddAsync(outboxOperation);
+            await _dbContext.SaveChangesAsync();
+
             var userItems = await _dbContext.Items
                 .Where(i => i.CustomerId == userId && itemsInOrder.Contains(i.Id))
                 .Include(i => i.Product)
@@ -142,7 +152,7 @@ namespace MicroMarket.Services.Basket.Services
                 ProductId = i.Product.CatalogProductId,
                 ProductQuantity = i.Quantity,
             }).ToList();
-            var claimItemsResponse = await _claimItemsRpcClient.CallAsync(claimRequest);
+            var (claimItemsResponse, _) = await _claimItemsRpcClient.CallAsync(claimRequest);
             if (claimItemsResponse.IsFailure)
                 return Result.Failure<Guid>($"Error happend in catalog service: {claimItemsResponse.Error}");
             var createDraftOrderRequest = new CreateDraftOrder()
@@ -157,7 +167,7 @@ namespace MicroMarket.Services.Basket.Services
                         ProductQuantity = i.ProductQuantity,
                     }).ToList()
             };
-            var createDraftOrderResponse = await _createDraftOrderRpcClient.CallAsync(createDraftOrderRequest);
+            var (createDraftOrderResponse, _) = await _createDraftOrderRpcClient.CallAsync(createDraftOrderRequest);
             if (createDraftOrderResponse.IsFailure)
             {
                 var returnItems = new ReturnItems()
@@ -170,10 +180,13 @@ namespace MicroMarket.Services.Basket.Services
                         }).ToList()
                 };
                 _basketMessagingService.ReturnItemsToCatalog(returnItems);
+                outboxOperation.State = OutboxState.Cancelled;
+                await _dbContext.SaveChangesAsync();
                 return CSharpFunctionalExtensions.Result.Failure<Guid>($"Some error happend during draft order creating {createDraftOrderResponse.Error}");
             }
             else
             {
+                outboxOperation.State = OutboxState.Completed;
                 _dbContext.RemoveRange(userItems);
                 await _dbContext.SaveChangesAsync();
                 return CSharpFunctionalExtensions.Result.Success<Guid>(createDraftOrderResponse.Value.CreatedDraftOrder);

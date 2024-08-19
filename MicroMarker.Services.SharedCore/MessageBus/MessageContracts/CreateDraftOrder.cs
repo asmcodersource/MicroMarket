@@ -11,6 +11,7 @@
         }
 
         public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
+        public Guid OperationId { get; init; }
         public Guid CustomerId { get; set; }
 
     }

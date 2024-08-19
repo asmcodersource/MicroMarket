@@ -11,13 +11,13 @@ namespace MicroMarket.Services.SharedCore.RabbitMqRpc
         private readonly string _rpcQueueName;
         private readonly IModel _channel;
         private readonly string _replyQueueName;
-        private readonly ConcurrentDictionary<string, TaskCompletionSource<CSharpFunctionalExtensions.Result<ResponseType>>> _callbackMapper = new();
+        private readonly ConcurrentDictionary<string, TaskCompletionSource<(CSharpFunctionalExtensions.Result<ResponseType>, BasicDeliverEventArgs)>> _callbackMapper = new();
 
-        public RpcClient(IModel channel, string rpcQueueName, string rpcReceivingQueueName = "")
+        public RpcClient(IModel channel, string rpcQueueName, string rpcReceivingQueueName = "", bool autoAct = true, bool durable=false)
         {
             _rpcQueueName = rpcQueueName;
             _channel = channel;
-            _replyQueueName = _channel.QueueDeclare(rpcReceivingQueueName).QueueName;
+            _replyQueueName = _channel.QueueDeclare(rpcReceivingQueueName, durable: durable, autoDelete: true).QueueName;
             var consumer = new EventingBasicConsumer(_channel);
             consumer.Received += (model, ea) =>
             {
@@ -28,15 +28,16 @@ namespace MicroMarket.Services.SharedCore.RabbitMqRpc
                 Result<ResponseType>? response = JsonSerializer.Deserialize<Result<ResponseType>>(json);
                 if (response is null)
                     throw new InvalidDataException();
-                tcs.TrySetResult(Result<ResponseType>.ConvertToCSharpFunctionalExtensionsResult(response));
+                var responseResult = Result<ResponseType>.ConvertToCSharpFunctionalExtensionsResult(response);
+                tcs.TrySetResult((responseResult, ea));
             };
 
             _channel.BasicConsume(consumer: consumer,
                                  queue: _replyQueueName,
-                                 autoAck: true);
+                                 autoAck: autoAct);
         }
 
-        public Task<CSharpFunctionalExtensions.Result<ResponseType>> CallAsync(RequestType request, CancellationToken cancellationToken = default)
+        public Task<(CSharpFunctionalExtensions.Result<ResponseType>, BasicDeliverEventArgs)> CallAsync(RequestType request, CancellationToken cancellationToken = default)
         {
             IBasicProperties props = _channel.CreateBasicProperties();
             var correlationId = Guid.NewGuid().ToString();
@@ -44,7 +45,7 @@ namespace MicroMarket.Services.SharedCore.RabbitMqRpc
             props.ReplyTo = _replyQueueName;
             var json = JsonSerializer.Serialize(request);
             var messageBytes = Encoding.UTF8.GetBytes(json);
-            var tcs = new TaskCompletionSource<CSharpFunctionalExtensions.Result<ResponseType>>();
+            var tcs = new TaskCompletionSource<(CSharpFunctionalExtensions.Result<ResponseType>, BasicDeliverEventArgs)>();
             _callbackMapper.TryAdd(correlationId, tcs);
 
             _channel.BasicPublish(exchange: string.Empty,

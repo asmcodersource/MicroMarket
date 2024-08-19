@@ -9,5 +9,6 @@
         }
 
         public ICollection<ItemToClaim> ItemsToClaims { get; set; } = new List<ItemToClaim>();
+        public Guid OperationId { get; init; }
     }
 }

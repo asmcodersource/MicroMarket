@@ -10,14 +10,14 @@ namespace MicroMarket.Services.SharedCore.RabbitMqRpc
         private readonly IModel _channel;
         public event Func<RequestType, Result<ResponseType>> OnRequest;
 
-        public RpcServer(IModel channel, string rpcQueueName, Func<RequestType, Result<ResponseType>> onRequest)
+        public RpcServer(IModel channel, string rpcQueueName, Func<RequestType, Result<ResponseType>> onRequest, bool durable = false)
         {
             OnRequest += onRequest;
             _channel = channel;
             _channel.QueueDeclare(queue: rpcQueueName,
-                     durable: false,
+                     durable: durable,
                      exclusive: false,
-                     autoDelete: false,
+                     autoDelete: true,
                      arguments: null);
             _channel.BasicQos(prefetchSize: 0, prefetchCount: 100, global: false);
             var consumer = new EventingBasicConsumer(_channel);
