@@ -45,6 +45,7 @@ namespace MicroMarket.Services.Basket.Services
                 "basket.create-draft-order.rpc"
             );
 
+            Model.ExchangeDeclare("ordering.messages.exchange", ExchangeType.Direct, true, false, null);
             Model.ExchangeDeclare("catalog.messages.exchange", ExchangeType.Direct, true, false, null);
             Model.QueueDeclare("basket.product-update.queue", true, false, false, null);
             Model.QueueBind("basket.product-update.queue", "catalog.messages.exchange", "product-update", null);

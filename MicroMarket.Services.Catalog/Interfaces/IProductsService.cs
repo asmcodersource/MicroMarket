@@ -7,6 +7,7 @@ namespace MicroMarket.Services.Catalog.Interfaces
 {
     public interface IProductsService
     {
+        public Task<Result> ReturnItems(ReturnItems returnItems);
         public Task<Result<ClaimedItemsResponse>> ClaimItems(ClaimOrderItems claimOrderItems);
         public Result<IQueryable<Product>> GetProducts();
         public Task<Result> DeleteProduct(Guid productId);

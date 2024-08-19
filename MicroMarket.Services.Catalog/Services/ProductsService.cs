@@ -8,6 +8,7 @@ using MicroMarket.Services.SharedCore.MessageBus.MessageContracts;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
 using System.Text.Json;
+using RabbitMQ.Client.Events;
 
 namespace MicroMarket.Services.Catalog.Services
 {
@@ -231,6 +232,29 @@ namespace MicroMarket.Services.Catalog.Services
             {
                 await transaction.RollbackAsync();
                 return Result.Failure<ClaimedItemsResponse>(ex.Message);
+            }
+        }
+
+        public async Task<Result> ReturnItems(ReturnItems returnItems)
+        {
+            var transaction = await _dbContext.Database.BeginTransactionAsync();
+            try
+            {
+                foreach (var itemToReturn in returnItems.ItemsToReturn)
+                {
+                    var product = await _dbContext.Products.SingleOrDefaultAsync(p => p.Id == itemToReturn.ProductId);
+                    if (product is null)
+                        continue;
+                    product.StockQuantity += itemToReturn.ProductQuantity;
+                }
+                await _dbContext.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return Result.Success();
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return Result.Failure(ex.Message);
             }
         }
     }

@@ -55,7 +55,7 @@
       "UpstreamPathTemplate": "/api/ordering/{everything}",
       "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ],
       "SwaggerKey": "Ordering"
-    }
+    },
     {
       "DangerousAcceptAnyServerCertificateValidator": true,
       "DownstreamPathTemplate": "/api/liqpay-payment/{everything}",

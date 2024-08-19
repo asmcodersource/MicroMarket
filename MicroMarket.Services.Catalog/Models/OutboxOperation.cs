@@ -1,4 +1,5 @@
-﻿using MicroMarket.Services.Catalog.Enums;
+﻿using Microsoft.EntityFrameworkCore;
+using MicroMarket.Services.Catalog.Enums;
 
 namespace MicroMarket.Services.Catalog.Models
 {

@@ -4,7 +4,7 @@
     {
         Executing,
         Completed,
-        Cancelled,
+        RolledBack,
         Failure
     }
 }

@@ -114,7 +114,10 @@ namespace MicroMarket.Services.Identity.Services
         {
             try
             {
-                var roles = await _rolesManager.Roles.Select(r => r.Name).AsNoTracking().ToListAsync() ?? new List<string?>();
+                var roles = await _rolesManager.Roles
+                    .Select(r => r.Name)
+                    .AsNoTracking()
+                    .ToListAsync() ?? new List<string?>();
                 return Result.Success<IList<string?>>(roles);
             }
             catch (Exception ex)

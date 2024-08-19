@@ -8,6 +8,7 @@ namespace MicroMarket.Services.Basket.DbContexts
         private readonly IConfiguration _configuration;
         public DbSet<Item> Items { get; set; }
         public DbSet<Product> Products { get; set; }
+        public DbSet<OutboxOperations> OutboxOperations { get; set; }
 
 
         public BasketDbContext(DbContextOptions<BasketDbContext> options, IConfiguration configuration)

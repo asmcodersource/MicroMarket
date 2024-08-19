@@ -136,7 +136,7 @@ namespace MicroMarket.Services.Basket.Services
                 OperationType = OutboxOperationType.OrderCreating,
                 State = OutboxState.Executing
             };
-            await _dbContext.AddAsync(outboxOperation);
+            await _dbContext.OutboxOperations.AddAsync(outboxOperation);
             await _dbContext.SaveChangesAsync();
 
             var userItems = await _dbContext.Items
@@ -154,7 +154,11 @@ namespace MicroMarket.Services.Basket.Services
             }).ToList();
             var (claimItemsResponse, _) = await _claimItemsRpcClient.CallAsync(claimRequest);
             if (claimItemsResponse.IsFailure)
+            {
+                outboxOperation.State = OutboxState.RolledBack;
+                await _dbContext.SaveChangesAsync();
                 return Result.Failure<Guid>($"Error happend in catalog service: {claimItemsResponse.Error}");
+            }
             var createDraftOrderRequest = new CreateDraftOrder()
             {
                 CustomerId = userId,
@@ -180,7 +184,7 @@ namespace MicroMarket.Services.Basket.Services
                         }).ToList()
                 };
                 _basketMessagingService.ReturnItemsToCatalog(returnItems);
-                outboxOperation.State = OutboxState.Cancelled;
+                outboxOperation.State = OutboxState.RolledBack;
                 await _dbContext.SaveChangesAsync();
                 return CSharpFunctionalExtensions.Result.Failure<Guid>($"Some error happend during draft order creating {createDraftOrderResponse.Error}");
             }

@@ -23,7 +23,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MicroMarket.Services.Orderi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MicroMarket.Services.LiqPayPayment", "MicroMarket.Services.LiqPayPayment\MicroMarket.Services.LiqPayPayment.csproj", "{003B1D3A-7B2C-4474-9B2C-4CBBC0B490A7}"
 EndProject
-Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "micromarket.services.web", "MicroMarket.Services.Web\micromarket.services.web.esproj", "{78F7AF42-ABAA-4B29-B8D2-F175547CC61A}"
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "Micromarket.Services.Web", "MicroMarket.Services.Web\Micromarket.Services.Web.esproj", "{78F7AF42-ABAA-4B29-B8D2-F175547CC61A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
