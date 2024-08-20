@@ -6,6 +6,7 @@ using RabbitMQ.Client;
 using System.Text.Json;
 using System.Text;
 using RabbitMQ.Client.Events;
+using MicroMarket.Services.Ordering.DbContexts;
 
 namespace MicroMarket.Services.Ordering.Services
 {
@@ -30,9 +31,9 @@ namespace MicroMarket.Services.Ordering.Services
             _rollbackOperationsConsumer = new EventingBasicConsumer(Model);
             _rollbackOperationsConsumer.Received += HandleOperationCancel;
             Model.ExchangeDeclare("ordering.messages.exchange", ExchangeType.Direct, true, false, null);
-            Model.QueueDeclare("ordering.cancel-operation.queue", true, false, false, null);
-            Model.QueueBind("ordering.cancel-operation.queue", "ordering.messages.exchange", "cancel-operation", null);
-            Model.BasicConsume("ordering.cancel-operation.queue", false, _rollbackOperationsConsumer);
+            Model.QueueDeclare("ordering.rollback-operation.queue", true, false, false, null);
+            Model.QueueBind("ordering.rollback-operation.queue", "ordering.messages.exchange", "rollback-operation", null);
+            Model.BasicConsume("ordering.rollback-operation.queue", false, _rollbackOperationsConsumer);
         }
 
         private SharedCore.RabbitMqRpc.Result<CreatedDraftOrderResponse> CreateDraftOrderHandler(CreateDraftOrder createOrder)
@@ -63,7 +64,21 @@ namespace MicroMarket.Services.Ordering.Services
 
         private void HandleOperationCancel(object? model, BasicDeliverEventArgs basicDeliverEventArgs)
         {
-            Model.BasicAck(basicDeliverEventArgs.DeliveryTag, true);
+            var rollbackOperation = JsonSerializer.Deserialize<RollbackOperation>(Encoding.UTF8.GetString(basicDeliverEventArgs.Body.ToArray()));
+            if (rollbackOperation is null)
+                return;
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<OrderingDbContext>();
+                var rollbackService = new OperationsRollbackService(dbContext);
+                switch (rollbackOperation.OperationType)
+                {
+                    case SharedCore.MessageBus.MessageContracts.Enums.OperationType.DraftOrderRollback:
+                        rollbackService.DraftOrderCreateRollback(rollbackOperation.CorrelationId).Wait();
+                        break;
+                }
+                Model.BasicAck(basicDeliverEventArgs.DeliveryTag, true);
+            }
         }
     }
 }

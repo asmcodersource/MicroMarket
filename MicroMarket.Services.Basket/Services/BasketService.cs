@@ -132,7 +132,7 @@ namespace MicroMarket.Services.Basket.Services
 
             var outboxOperation = new OutboxOperations()
             {
-                AggregateId = Guid.NewGuid(),
+                CorrelationId = Guid.NewGuid(),
                 OperationType = OutboxOperationType.OrderCreating,
                 State = OutboxState.Executing
             };
@@ -146,12 +146,15 @@ namespace MicroMarket.Services.Basket.Services
             if (userItems.Count != itemsInOrder.Count)
                 return Result.Failure<Guid>($"Not all basket objects exist");
 
-            var claimRequest = new ClaimOrderItems();
-            claimRequest.ItemsToClaims = userItems.Select(i => new ClaimOrderItems.ItemToClaim()
+            var claimRequest = new ClaimOrderItems()
             {
-                ProductId = i.Product.CatalogProductId,
-                ProductQuantity = i.Quantity,
-            }).ToList();
+                OperationId = outboxOperation.CorrelationId,
+                ItemsToClaims = userItems.Select(i => new ClaimOrderItems.ItemToClaim()
+                {
+                    ProductId = i.Product.CatalogProductId,
+                    ProductQuantity = i.Quantity,
+                }).ToList()
+            };
             var (claimItemsResponse, _) = await _claimItemsRpcClient.CallAsync(claimRequest);
             if (claimItemsResponse.IsFailure)
             {
@@ -162,6 +165,7 @@ namespace MicroMarket.Services.Basket.Services
             var createDraftOrderRequest = new CreateDraftOrder()
             {
                 CustomerId = userId,
+                OperationId = outboxOperation.CorrelationId,
                 Items = claimItemsResponse.Value.ClaimedItems.Select(i =>
                     new CreateDraftOrder.OrderItem()
                     {

@@ -18,6 +18,7 @@ if (!EF.IsDesignTime)
     builder.Services.AddScoped<IProductsService, ProductsService>();
     builder.Services.AddSingleton<IManagerProductsFilterService, ManagerProductFilterService>();
     builder.Services.AddSingleton<ICustomerProductsFilterService, CustomerProductFilterService>();
+    builder.Services.AddScoped<IOperationsRollbackService, OperationsRollbackService>();
     builder.Services.AddSingleton<CatalogMessagingService>();
     builder.Services.AddControllers().AddJsonOptions(opts =>
     {

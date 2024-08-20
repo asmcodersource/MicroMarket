@@ -16,6 +16,8 @@ if (!EF.IsDesignTime)
     builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
     builder.Services.AddScoped<IBasketService, BasketService>();
     builder.Services.AddSingleton<BasketMessagingService>();
+    builder.Services.AddScoped<IOperationsRollbackService, OperationsRollbackService>();
+    builder.Services.AddHostedService<RollbackWorkerService>();
     builder.Services.AddControllers().AddJsonOptions(opts =>
     {
         var enumConverter = new JsonStringEnumConverter();
@@ -48,6 +50,9 @@ if (app.Environment.IsDevelopment())
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<BasketDbContext>();
             await dbContext.Database.MigrateAsync();
+
+            var rollbackService = scope.ServiceProvider.GetRequiredService<IOperationsRollbackService>();
+            rollbackService.MarkExecutingAsFailured();
         }
     }
 }

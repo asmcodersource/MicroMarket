@@ -43,10 +43,10 @@ namespace MicroMarket.Services.Catalog.Services
             _rollbackOperationsConsumer.Received += HandleOperationRollback;
             Model.ExchangeDeclare("catalog.messages.exchange", ExchangeType.Direct, true, false, null);
             Model.QueueDeclare("catalog.return-items.queue", true, false, false, null);
-            Model.QueueDeclare("catalog.cancel-operation.queue", true, false, false, null);
+            Model.QueueDeclare("catalog.rollback-operation.queue", true, false, false, null);
             Model.QueueBind("catalog.return-items.queue", "catalog.messages.exchange", "return-items", null);
-            Model.QueueBind("catalog.cancel-operation.queue", "catalog.messages.exchange", "cancel-operation", null);
-            Model.BasicConsume("catalog.cancel-operation.queue", false, _rollbackOperationsConsumer);
+            Model.QueueBind("catalog.rollback-operation.queue", "catalog.messages.exchange", "rollback-operation", null);
+            Model.BasicConsume("catalog.rollback-operation.queue", false, _rollbackOperationsConsumer);
             Model.BasicConsume("catalog.return-items.queue", false, _returnItemsConsumer);
         }
 
@@ -116,15 +116,19 @@ namespace MicroMarket.Services.Catalog.Services
             var rollbackOperation = JsonSerializer.Deserialize<RollbackOperation>(Encoding.UTF8.GetString(basicDeliverEventArgs.Body.ToArray()));
             if( rollbackOperation is null) 
                 return;
-            switch( rollbackOperation.OperationType)
+            using (var scope = _serviceScopeFactory.CreateScope())
             {
-                case SharedCore.MessageBus.MessageContracts.Enums.OperationType.ItemsClaimRollback:
-                    
-                    break;
-                default:
-                    return;
+                var dbContext = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
+                var rollbackService = new OperationsRollbackService(dbContext, this);
+                    switch (rollbackOperation.OperationType)
+                    {
+                        case SharedCore.MessageBus.MessageContracts.Enums.OperationType.ItemsClaimRollback:
+                            rollbackService.ItemsClaimRollback(rollbackOperation.CorrelationId).Wait();
+                            break;
+                    }
+                    dbContext.SaveChanges();
+                    Model.BasicAck(basicDeliverEventArgs.DeliveryTag, true);
             }
-            Model.BasicAck(basicDeliverEventArgs.DeliveryTag, true);
         }
     }
 }

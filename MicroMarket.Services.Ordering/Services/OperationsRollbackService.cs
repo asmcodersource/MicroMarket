@@ -15,26 +15,19 @@ namespace MicroMarket.Services.Ordering.Services
 
         public async Task DraftOrderCreateRollback(Guid correlationId)
         {
-            var transaction = await _orderingDbContext.Database.BeginTransactionAsync();
-            try
-            {
-                var operation = await _orderingDbContext.OutboxOperations
-                    .Where(o => o.CorrelationId == correlationId && o.State != Enums.OutboxState.RolledBack)
-                    .SingleOrDefaultAsync();
-                if (operation is null)
-                    return;
-                var draftOrder = await _orderingDbContext.DraftOrders
-                    .SingleOrDefaultAsync(o => o.Id == operation.AggregationId);
-                if( draftOrder is not null )
-                    _orderingDbContext.DraftOrders.Remove(draftOrder);
-                operation.State = Enums.OutboxState.RolledBack;
-                await _orderingDbContext.SaveChangesAsync();
-                await transaction.CommitAsync();
-            } catch
-            {
-                await transaction.RollbackAsync();
-                throw;
-            }
+            var operation = await _orderingDbContext.OutboxOperations
+                .Where(o => o.CorrelationId == correlationId && o.State != Enums.OutboxState.RolledBack)
+                .SingleOrDefaultAsync();
+            if (operation is null)
+                return;
+            if (operation.OperationType != Enums.OutboxOperationType.CreateDraftOrder)
+                throw new InvalidOperationException();
+            var draftOrder = await _orderingDbContext.DraftOrders
+                .SingleOrDefaultAsync(o => o.Id == operation.AggregationId);
+            if( draftOrder is not null )
+                _orderingDbContext.DraftOrders.Remove(draftOrder);
+            operation.State = Enums.OutboxState.RolledBack;
+            await _orderingDbContext.SaveChangesAsync();
         }
     }
 }

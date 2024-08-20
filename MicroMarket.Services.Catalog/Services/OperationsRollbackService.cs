@@ -9,49 +9,45 @@ namespace MicroMarket.Services.Catalog.Services
     public class OperationsRollbackService : IOperationsRollbackService
     {
         private readonly CatalogDbContext _catalogDbContext;
+        private readonly CatalogMessagingService _catalogMessagingService;
 
-        public OperationsRollbackService(CatalogDbContext catalogDbContext)
+        public OperationsRollbackService(CatalogDbContext catalogDbContext, CatalogMessagingService catalogMessagingService)
         {
             _catalogDbContext = catalogDbContext;
+            _catalogMessagingService = catalogMessagingService;
         }
 
         public async Task ItemsClaimRollback(Guid correlationId)
         {
-            var transaction = await _catalogDbContext.Database.BeginTransactionAsync();
-            try
-            {
-                var operation =  await _catalogDbContext.OutboxOperations
-                    .Where(o => o.CorrelationId == correlationId && o.State != Enums.OutboxState.RolledBack)
-                    .SingleOrDefaultAsync();
-                if (operation is null)
-                    return;
-                var claimedItemsOperation = await _catalogDbContext.ItemsClaimOperations
-                    .Where(o => o.Id == operation.AggregationId)
-                    .SingleOrDefaultAsync();
-                if (claimedItemsOperation is null)
-                    throw new ApplicationException();
-                var productsService = new ProductsService(_catalogDbContext, null);
-                var itemsToReturn = claimedItemsOperation.ItemsToClaim
-                    .Select(i => new ReturnItems.ItemToReturn()
-                    {
-                        ProductId = i.ProductId,
-                        ProductQuantity = i.ProductQuantity
-                    }
-                ).ToList();
-
-                await productsService.ReturnItems(new ReturnItems()
+            var operation =  await _catalogDbContext.OutboxOperations
+                .Where(o => o.CorrelationId == correlationId && o.State != Enums.OutboxState.RolledBack)
+                .SingleOrDefaultAsync();
+            if (operation is null)
+                return;
+            if (operation.OperationType != Enums.OutboxOperationType.ItemsClaim)
+                throw new InvalidOperationException();
+            var claimedItemsOperation = await _catalogDbContext.ItemsClaimOperations
+                .Where(o => o.Id == operation.AggregationId)
+                .Include(o => o.ItemsToClaim)
+                .SingleOrDefaultAsync();
+            if (claimedItemsOperation is null)
+                throw new ApplicationException();
+            var productsService = new ProductsService(_catalogDbContext, _catalogMessagingService);
+            var itemsToReturn = claimedItemsOperation.ItemsToClaim
+                .Select(i => new ReturnItems.ItemToReturn()
                 {
-                    ItemsToReturn = itemsToReturn,
-                });
+                    ProductId = i.ProductId,
+                    ProductQuantity = i.ProductQuantity
+                }
+            ).ToList();
 
-                operation.State = Enums.OutboxState.RolledBack;
-                await _catalogDbContext.SaveChangesAsync();
-                await transaction.CommitAsync();
-            } catch (Exception ex)
+            await productsService.ReturnItems(new ReturnItems()
             {
-                await transaction.RollbackAsync();
-                throw;
-            }
+                ItemsToReturn = itemsToReturn,
+            });
+
+            operation.State = Enums.OutboxState.RolledBack;
+            await _catalogDbContext.SaveChangesAsync();
         }
     }
 }
